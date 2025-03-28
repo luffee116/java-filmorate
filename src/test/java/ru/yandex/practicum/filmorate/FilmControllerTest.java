@@ -9,17 +9,17 @@ import ru.yandex.practicum.filmorate.model.Film;
 
 import java.time.LocalDate;
 
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 public class FilmControllerTest {
 
     @Autowired
-    private FilmController filmController;
+    FilmController filmController;
+
 
     @Test
-    void validateFilm_ShouldAccept200Description() {
+    void validateFilm_ShouldAccept200Description() throws NoSuchMethodException {
         Film validFilm = Film.builder()
                 .name("Valid Film")
                 .description("q".repeat(200))
@@ -27,63 +27,66 @@ public class FilmControllerTest {
                 .duration(120L)
                 .build();
 
-        assertDoesNotThrow(() -> filmController.validateFilm(validFilm));
+        assertDoesNotThrow(() -> filmController.addFilm(validFilm));
     }
 
     @Test
-    void validateFilm_ShouldAcceptPositiveDuration() {
+    void validateFilm_ShouldAcceptPositiveDuration() throws NoSuchMethodException {
         Film validFilm = Film.builder()
                 .name("Valid Film")
                 .description("q".repeat(200))
                 .releaseDate(LocalDate.of(2000, 1, 1))
-                .duration(0L)
+                .duration(1L)
                 .build();
 
-        assertDoesNotThrow(() -> filmController.validateFilm(validFilm));
+        assertDoesNotThrow(() -> filmController.addFilm(validFilm));
     }
 
     @Test
-    void validateFilm_ShouldAcceptLimitReleaseDate() {
+    void validateFilm_ShouldAcceptLimitReleaseDate() throws NoSuchMethodException {
         Film validFilm = Film.builder()
                 .name("Valid Film")
                 .description("q".repeat(200))
                 .releaseDate(LocalDate.of(1950, 12, 28))
                 .duration(10L)
                 .build();
-        assertDoesNotThrow(() -> filmController.validateFilm(validFilm));
+
+        assertDoesNotThrow(() -> filmController.addFilm(validFilm));
     }
 
     @Test
-    void validateFilm_ShouldAcceptWhenValidFilm() {
+    void validateFilm_ShouldAcceptWhenValidFilm() throws NoSuchMethodException {
         Film validFilm = Film.builder()
                 .name("Valid Film")
                 .description("ValidDescription")
                 .releaseDate(LocalDate.of(2000, 1, 1))
                 .duration(10L)
                 .build();
-        assertDoesNotThrow(() -> filmController.validateFilm(validFilm));
+
+        assertDoesNotThrow(() -> filmController.addFilm(validFilm));
     }
 
     @Test
-    void validateFilm_ShouldThrowWhenNameIsEmpty() {
-        Film unvalidFilm = Film.builder()
+    void validateFilm_ShouldThrowWhenNameIsEmpty() throws NoSuchMethodException {
+        Film invalidFilm = Film.builder()
                 .name(" ")
                 .description("ValidDescription")
                 .releaseDate(LocalDate.of(2000, 1, 1))
                 .duration(10L)
                 .build();
-        assertThrows(ValidationException.class, () -> filmController.validateFilm(unvalidFilm));
+
+        assertThrows(ValidationException.class, () -> filmController.addFilm(invalidFilm));
     }
 
     @Test
     void validateFilm_ShouldThrowLimitReleaseDate() {
-        Film unvalidFilm = Film.builder()
+        Film invalidFilm = Film.builder()
                 .name(" ")
                 .description("ValidDescription")
                 .releaseDate(LocalDate.of(1950, 12, 27))
                 .duration(10L)
                 .build();
-        assertThrows(ValidationException.class, () -> filmController.validateFilm(unvalidFilm));
+        assertThrows(ValidationException.class, () -> filmController.addFilm(invalidFilm));
     }
 
     @Test
@@ -95,7 +98,7 @@ public class FilmControllerTest {
                 .duration(120L)
                 .build();
 
-        assertThrows(ValidationException.class, () -> filmController.validateFilm(validFilm));
+        assertThrows(ValidationException.class, () -> filmController.addFilm(validFilm));
     }
 
     @Test
@@ -107,6 +110,6 @@ public class FilmControllerTest {
                 .duration(-1L)
                 .build();
 
-        assertThrows(ValidationException.class, () -> filmController.validateFilm(validFilm));
+        assertThrows(ValidationException.class, () -> filmController.addFilm(validFilm));
     }
 }

@@ -29,7 +29,7 @@ public class UserControllerTest {
                 .birthday(LocalDate.of(2002, 11, 28))
                 .build();
 
-        assertThrows(ValidationException.class, () -> userController.validateUser(user));
+        assertThrows(ValidationException.class, () -> userController.addUser(user));
     }
 
     @Test
@@ -41,7 +41,7 @@ public class UserControllerTest {
                 .birthday(LocalDate.of(2002, 11, 28))
                 .build();
 
-        assertThrows(ValidationException.class, () -> userController.validateUser(user));
+        assertThrows(ValidationException.class, () -> userController.addUser(user));
     }
 
     @Test
@@ -53,7 +53,7 @@ public class UserControllerTest {
                 .birthday(LocalDate.of(2002, 11, 28))
                 .build();
 
-        assertThrows(ValidationException.class, () -> userController.validateUser(user));
+        assertThrows(ValidationException.class, () -> userController.addUser(user));
     }
 
     @Test
@@ -65,7 +65,7 @@ public class UserControllerTest {
                 .birthday(LocalDate.of(2002, 11, 28))
                 .build();
 
-        assertThrows(ValidationException.class, () -> userController.validateUser(user));
+        assertThrows(ValidationException.class, () -> userController.addUser(user));
     }
 
     @Test
@@ -77,7 +77,7 @@ public class UserControllerTest {
                 .birthday(null)
                 .build();
 
-        assertThrows(ValidationException.class, () -> userController.validateUser(user));
+        assertThrows(ValidationException.class, () -> userController.addUser(user));
     }
 
     @Test
@@ -89,7 +89,7 @@ public class UserControllerTest {
                 .birthday(LocalDate.of(2030, 12, 10))
                 .build();
 
-        assertThrows(ValidationException.class, () -> userController.validateUser(user));
+        assertThrows(ValidationException.class, () -> userController.addUser(user));
     }
 
     @Test
@@ -101,7 +101,7 @@ public class UserControllerTest {
                 .birthday(LocalDate.of(2002, 11, 28))
                 .build();
 
-        assertDoesNotThrow(() -> userController.validateUser(user));
+        assertDoesNotThrow(() -> userController.addUser(user));
     }
 
     @Test

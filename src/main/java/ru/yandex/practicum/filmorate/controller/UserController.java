@@ -20,6 +20,7 @@ public class UserController {
 
     @GetMapping
     public Collection<User> getAll() {
+        log.info("Отправлен список всех пользователей");
         return usersStorage.values();
     }
 
@@ -27,13 +28,11 @@ public class UserController {
     public User addUser(@RequestBody User requestUser) {
         validateUser(requestUser);
 
-        if (requestUser.getName() == null || requestUser.getName().isBlank()) {
-            requestUser.setName(requestUser.getLogin());
-        }
+        User chekedNameUser = checkName(requestUser);
 
-        requestUser.setId(generateId());
-        usersStorage.put(requestUser.getId(), requestUser);
-        log.info("Добавлен новый пользователь {}", requestUser);
+        chekedNameUser.setId(generateId());
+        usersStorage.put(chekedNameUser.getId(), chekedNameUser);
+        log.info("Добавлен новый пользователь {}", chekedNameUser);
         return requestUser;
     }
 
@@ -45,12 +44,15 @@ public class UserController {
             log.error("Ошибка обновления: пользователь с id {} не найден", requestUser.getId());
             throw new UserNotFoundException("Не найден пользователь с id: " + requestUser.getId());
         }
-        usersStorage.put(requestUser.getId(), requestUser);
-        log.info("Обновлен польз`ователь с id {}: {}", requestUser.getId(), requestUser);
+
+        User chekdeNameUser = checkName(requestUser);
+
+        usersStorage.put(chekdeNameUser.getId(), chekdeNameUser);
+        log.info("Обновлен польз`ователь с id {}: {}", chekdeNameUser.getId(), chekdeNameUser);
         return requestUser;
     }
 
-    public void validateUser(User user) {
+    private void validateUser(User user) {
         if (user.getEmail() == null || user.getEmail().isBlank() || !user.getEmail().contains("@")) {
             log.error("Ошибка валидации: некорректная электронная почта {}", user.getEmail());
             throw new ValidationException("Электронная почта не может быть пустой и должна содержать символ @");
@@ -73,5 +75,12 @@ public class UserController {
                 .max()
                 .orElse(0);
         return ++currentMaxId;
+    }
+
+    private User checkName(User user) {
+        if (user.getName() == null || user.getName().isBlank()) {
+            user.setName(user.getLogin());
+        }
+        return user;
     }
 }

@@ -18,6 +18,7 @@ public class FilmController {
 
     @GetMapping
     public Collection<Film> getAll() {
+        log.info("Отправлен список всех фильмов");
         return filmStorage.values();
     }
 
@@ -54,18 +55,20 @@ public class FilmController {
         return ++currentMaxId;
     }
 
-    public void validateFilm(Film film) {
-        if (film.getDuration() < 0) {
+    private void validateFilm(Film film) {
+        if (film.getDuration() <= 0) {
             log.error("Ошибка валидации: некорректная продолжительность фильма {}", film.getDuration());
             throw new ValidationException("Продолжительность фильма должна быть положительным числом");
         }
-        if (film.getName().isEmpty() || film.getName().isBlank()) {
+        if (film.getName().isBlank()) {
             log.error("Ошибка валидации: некорректное название фильма {}", film.getName());
             throw new ValidationException("Название фильма не может быть пустым");
         }
-        if (film.getDescription().length() > 200) {
-            log.error("Ошибка валидации: некорректное описание {}", film.getDescription());
-            throw new ValidationException("Длина описания должна быть не больше 200 символов");
+        if (!film.getDescription().isBlank()) {
+            if (film.getDescription().length() > 200) {
+                log.error("Ошибка валидации: некорректное описание {}", film.getDescription());
+                throw new ValidationException("Длина описания должна быть не больше 200 символов");
+            }
         }
         if (film.getReleaseDate().isBefore(LocalDate.of(1950, 12, 28))) {
             log.error("Ошибка валидации: некорректная дата релиза {}", film.getReleaseDate());
