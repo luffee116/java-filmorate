@@ -28,11 +28,10 @@ public class UserController {
     public User addUser(@RequestBody User requestUser) {
         validateUser(requestUser);
 
-        User chekedNameUser = checkName(requestUser);
-
-        chekedNameUser.setId(generateId());
-        usersStorage.put(chekedNameUser.getId(), chekedNameUser);
-        log.info("Добавлен новый пользователь {}", chekedNameUser);
+        checkName(requestUser);
+        requestUser.setId(generateId());
+        usersStorage.put(requestUser.getId(), requestUser);
+        log.info("Добавлен новый пользователь {}", requestUser);
         return requestUser;
     }
 
@@ -45,10 +44,10 @@ public class UserController {
             throw new UserNotFoundException("Не найден пользователь с id: " + requestUser.getId());
         }
 
-        User chekdeNameUser = checkName(requestUser);
+        checkName(requestUser);
 
-        usersStorage.put(chekdeNameUser.getId(), chekdeNameUser);
-        log.info("Обновлен польз`ователь с id {}: {}", chekdeNameUser.getId(), chekdeNameUser);
+        usersStorage.put(requestUser.getId(), requestUser);
+        log.info("Обновлен польз`ователь с id {}: {}", requestUser.getId(), requestUser);
         return requestUser;
     }
 
@@ -77,10 +76,9 @@ public class UserController {
         return ++currentMaxId;
     }
 
-    private User checkName(User user) {
+    private void checkName(User user) {
         if (user.getName() == null || user.getName().isBlank()) {
             user.setName(user.getLogin());
         }
-        return user;
     }
 }

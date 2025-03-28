@@ -70,7 +70,7 @@ public class FilmController {
                 throw new ValidationException("Длина описания должна быть не больше 200 символов");
             }
         }
-        if (film.getReleaseDate().isBefore(LocalDate.of(1950, 12, 28))) {
+        if (film.getReleaseDate() == null || film.getReleaseDate().isBefore(LocalDate.of(1950, 12, 28))) {
             log.error("Ошибка валидации: некорректная дата релиза {}", film.getReleaseDate());
             throw new ValidationException("Дата релиза не может быть ранее, чем 28 декабря 1950г.");
         }
