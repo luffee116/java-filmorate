@@ -61,9 +61,9 @@ public class InMemoryUserService implements UserService {
     @Override
     public List<User> getUserFriends(Integer userId) {
         return userStorage.getUserFriends(userId).orElseThrow(() -> {
-            String message = String .format("Пользователь с id = %d не найден", userId);
-          log.info(message);
-          return new UserNotFoundException(message);
+            String message = String.format("Пользователь с id = %d не найден", userId);
+            log.info(message);
+            return new UserNotFoundException(message);
         });
     }
 }

@@ -18,7 +18,7 @@ public class User {
     private final Set<Integer> friends = new HashSet<>();
 
 
-    public void addFriend(Integer friendId){
+    public void addFriend(Integer friendId) {
         friends.add(friendId);
     }
 
