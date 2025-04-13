@@ -83,8 +83,8 @@ public class InMemoryUserStorage implements UserStorage {
         if (usersStorage.containsKey(firstUser) && usersStorage.containsKey(secondUser)) {
             Set<Integer> user = usersStorage.get(firstUser).getFriends();
             Set<Integer> friend = usersStorage.get(secondUser).getFriends();
-            List<User> usersList = user.stream().
-                    filter(friend::contains)
+            List<User> usersList = user.stream()
+                    .filter(friend::contains)
                     .map(usersStorage::get)
                     .toList();
 
