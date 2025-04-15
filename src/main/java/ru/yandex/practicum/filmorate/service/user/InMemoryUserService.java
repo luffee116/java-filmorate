@@ -18,16 +18,19 @@ public class InMemoryUserService implements UserService {
 
     @Override
     public List<User> getAll() {
+        log.info("Отправлен список всех пользователей, size:{}", userStorage.getAll().size());
         return userStorage.getAll();
     }
 
     @Override
     public User addUser(User user) {
+        log.info("Добавлен новый пользователь с именем:{}", user.getName());
         return userStorage.addUser(user);
     }
 
     @Override
     public User updateUser(User user) {
+        log.info("Пользователь с id:{}", user.getId());
         return userStorage.updateUser(user);
     }
 

@@ -23,52 +23,56 @@ public class InMemoryFilmService implements FilmService {
 
     @Override
     public Film create(Film requestFilm) {
+        log.info("Создание фильма с названием: {}", requestFilm.getId());
         return filmStorage.create(requestFilm);
     }
 
     @Override
     public Film update(Film requestFilm) {
+        log.info("Обновлен фильм фильм с id: {}", requestFilm.getId());
         return filmStorage.update(requestFilm);
     }
 
     @Override
     public List<Film> getAll() {
+        log.info("Отправлен список всех фильмов, size: {}", filmStorage.getAll().size());
         return filmStorage.getAll();
     }
 
     @Override
     public void addLike(Integer postId, Integer userId) {
-        userStorage.checkUserId(userId).orElseThrow(() -> {
-            final String message = String.format("Пользователь с id= %d не найден", userId);
-            log.info(message);
-
-            return new UserNotFoundException(message);
-        });
-
-        filmStorage.addLike(postId, userId).orElseThrow(() -> {
-            final String message = String.format("Фильм с id= %d не найден", postId);
-            log.info(message);
-            return new FilmNotFoundException(message);
-        });
+        if (findUser(userId)) {
+            filmStorage.addLike(postId, userId).orElseThrow(() -> {
+                final String message = String.format("Фильм с id= %d не найден", postId);
+                log.info(message);
+                return new FilmNotFoundException(message);
+            });
+        }
     }
 
     @Override
     public void removeLike(Integer postId, Integer userId) {
+        if (findUser(userId)) {
+            filmStorage.removeLike(postId, userId).orElseThrow(() -> {
+                final String message = String.format("Фильм с id= %d не найден", postId);
+                log.info(message);
+                return new FilmNotFoundException(message);
+            });
+        }
+    }
+
+    @Override
+    public List<Film> getPopularFilm(Integer count) {
+        log.info("Отправлен список популярных фильмов, count: {}", count);
+        return filmStorage.getPopularFilm(count);
+    }
+
+    private boolean findUser(Integer userId) {
         userStorage.checkUserId(userId).orElseThrow(() -> {
             final String message = String.format("Пользователь с id= %d не найден", userId);
             log.info(message);
             return new UserNotFoundException(message);
         });
-
-        filmStorage.removeLike(postId, userId).orElseThrow(() -> {
-            final String message = String.format("Фильм с id= %d не найден", postId);
-            log.info(message);
-            return new FilmNotFoundException(message);
-        });
-    }
-
-    @Override
-    public List<Film> getPopularFilm(Integer count) {
-        return filmStorage.getPopularFilm(count);
+        return true;
     }
 }
