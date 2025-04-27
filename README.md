@@ -1,2 +1,4 @@
-# java-filmorate
-Template repository for Filmorate project.
+# Filmorate Database Schema
+
+## Have a good day :)
+

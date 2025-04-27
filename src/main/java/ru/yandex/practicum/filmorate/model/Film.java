@@ -18,6 +18,8 @@ public class Film {
     private String description;
     private LocalDate releaseDate;
     private Long duration;
+    private Set<Genre> genres;
+    private Rating rating;
     private final Set<Integer> likes = new HashSet<>();
 
     public void addLike(Integer userId) {
