@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.exeptions;
 
+import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -19,12 +20,19 @@ public class ApiExceptionHandler {
                 LocalDateTime.now());
     }
 
-    @ExceptionHandler({FilmNotFoundException.class, UserNotFoundException.class})
+    @ExceptionHandler({FilmNotFoundException.class, UserNotFoundException.class, NotFoundException.class, LikeException.class})
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public Exception handleNotFound(final RuntimeException e) {
         return new Exception(
                 e.getMessage(),
-                LocalDateTime.now());
+                LocalDateTime.now()
+                );
+    }
+
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public Exception handleValidation(ConstraintViolationException e) {
+        return new Exception("Validation exception", LocalDateTime.now());
     }
 
 
