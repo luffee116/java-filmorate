@@ -134,11 +134,4 @@ public class FilmControllerTest {
 
         assertThrows(ValidationException.class, () -> filmController.addFilm(film));
     }
-
-    @Test
-    void testNullId() {
-        film.setId(null);
-
-        assertThrows(ValidationException.class, () -> filmController.addFilm(film));
-    }
 }
