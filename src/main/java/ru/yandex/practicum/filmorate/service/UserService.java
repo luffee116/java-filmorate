@@ -1,12 +1,8 @@
 package ru.yandex.practicum.filmorate.service;
 
-import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
-import org.springframework.validation.annotation.Validated;
 import ru.yandex.practicum.filmorate.exeptions.FriendshipException;
 import ru.yandex.practicum.filmorate.exeptions.NotFoundException;
 import ru.yandex.practicum.filmorate.exeptions.UserNotFoundException;
@@ -30,7 +26,7 @@ public class UserService {
     public User getUserById(Integer id) {
         log.info("Получение информации о пользователе с id {}", id);
         Optional<User> response = userStorage.getUserById(id);
-        if  (response.isEmpty()) {
+        if (response.isEmpty()) {
             throw new UserNotFoundException(String.format("Пользователь с id {} не найден", id));
         }
         return response.get();

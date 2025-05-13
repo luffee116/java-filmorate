@@ -4,8 +4,7 @@ import org.springframework.jdbc.core.RowMapper;
 import ru.yandex.practicum.filmorate.dto.FilmDto;
 import ru.yandex.practicum.filmorate.dto.GenreDto;
 import ru.yandex.practicum.filmorate.dto.MpaDto;
-import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.model.MpaRating;
+
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
