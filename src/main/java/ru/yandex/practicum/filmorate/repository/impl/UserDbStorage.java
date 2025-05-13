@@ -25,7 +25,7 @@ public class UserDbStorage extends BaseDbStorage implements UserStorage {
     private final UserRowMapper userRowMapper = new UserRowMapper();
 
     // SQL Запросы –––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
-    private static final String ADD_USER_QUERY = """ 
+    private static final String ADD_USER_QUERY = """
             INSERT INTO users (EMAIL, LOGIN, NAME, BIRTHDAY)
             VALUES (?, ?, ?, ?);
             """;
@@ -57,7 +57,7 @@ public class UserDbStorage extends BaseDbStorage implements UserStorage {
             FROM user_friends
             WHERE user_id = ?;
             """;
-    private static final String GET_USER_COMMON_FRIENDS = """ 
+    private static final String GET_USER_COMMON_FRIENDS = """
             SELECT u.* FROM users u
             JOIN user_friends uf1 ON u.id = uf1.friend_id
             JOIN user_friends uf2 ON u.id = uf2.friend_id
