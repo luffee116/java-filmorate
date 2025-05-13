@@ -1,4 +1,4 @@
-package ru.yandex.practicum.filmorate.storage.user;
+package ru.yandex.practicum.filmorate.repository;
 
 import ru.yandex.practicum.filmorate.model.User;
 
@@ -9,9 +9,11 @@ public interface UserStorage {
 
     List<User> getAll();
 
+    Optional<User> getUserById(Integer id);
+
     User addUser(User user);
 
-    User updateUser(User requestUser);
+    Optional<User> updateUser(User requestUser);
 
     Optional<Boolean> addFriend(Integer firstId, Integer secondId);
 
@@ -20,6 +22,4 @@ public interface UserStorage {
     Optional<List<User>> getCommonFriends(Integer firstUser, Integer secondUser);
 
     Optional<List<User>> getUserFriends(Integer userId);
-
-    Optional<Boolean> checkUserId(Integer id);
 }

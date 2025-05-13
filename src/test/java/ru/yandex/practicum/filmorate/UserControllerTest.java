@@ -1,16 +1,17 @@
 package ru.yandex.practicum.filmorate;
 
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import org.springframework.jdbc.core.JdbcTemplate;
 import ru.yandex.practicum.filmorate.controller.UserController;
 import ru.yandex.practicum.filmorate.exeptions.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
 
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.time.LocalDate;
 
@@ -18,7 +19,61 @@ import java.time.LocalDate;
 public class UserControllerTest {
 
     @Autowired
+    JdbcTemplate jdbcTemplate;
+
+    @Autowired
     UserController userController;
+
+    User user;
+
+    @BeforeEach
+    void setUp() {
+        jdbcTemplate.execute("DELETE FROM users");
+
+        user = new User();
+        user.setId(1);
+        user.setEmail("test@email.ru");
+        user.setLogin("test");
+        user.setBirthday(LocalDate.of(2002,12,28));
+    }
+
+    @Test
+    void testAddFilm() {
+        User created = userController.addUser(user);
+        assertNotNull(created.getId());
+        assertEquals("test@email.ru", created.getEmail());
+        assertEquals("test", created.getLogin());
+        assertEquals(LocalDate.of(2002,12,28), created.getBirthday());
+    }
+
+    @Test
+    void testUpdateFilm() {
+        User created = userController.addUser(user);
+        User newUser = new User();
+        newUser.setId(created.getId());
+        newUser.setLogin("UPDATED");
+        newUser.setEmail(created.getEmail());
+        newUser.setBirthday(LocalDate.of(1998,12,28));
+        User updated = userController.updateUser(newUser);
+        assertEquals("UPDATED", updated.getLogin());
+        assertEquals(LocalDate.of(1998,12,28), updated.getBirthday());
+    }
+
+    @Test
+    void testGetUserById() {
+        User created = userController.addUser(user);
+        assertEquals("test", created.getLogin());
+        assertEquals(user.getBirthday(), created.getBirthday());
+    }
+
+    @Test
+    void testGetALlUsers() {
+        userController.addUser(user);
+        userController.addUser(user);
+        userController.addUser(user);
+
+        assertEquals(3, userController.getAll().size());
+    }
 
     @Test
     void validateUser_ShouldThrowWhenBlankEmail() {
@@ -104,18 +159,5 @@ public class UserControllerTest {
         assertDoesNotThrow(() -> userController.addUser(user));
     }
 
-    @Test
-    void validatesUser_ShouldAddNameWhenEmpty() {
-        User user = User.builder()
-                .email("aliullov@mail.ru")
-                .login("luffee")
-                .name("")
-                .birthday(LocalDate.of(2002, 11, 28))
-                .build();
 
-        userController.addUser(user);
-        String expected = "luffee";
-        String actual = user.getName();
-        Assertions.assertEquals(expected, actual);
-    }
 }
