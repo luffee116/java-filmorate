@@ -61,7 +61,7 @@ public class UserDbStorage extends BaseDbStorage implements UserStorage {
             SELECT u.* FROM users u
             JOIN user_friends uf1 ON u.id = uf1.friend_id
             JOIN user_friends uf2 ON u.id = uf2.friend_id
-            WHERE uf1.user_id = ? AND uf2.user_id = ?
+            WHERE uf1.user_id = ? AND uf2.user_id = ?;
             """;
     private static final String FIND_USER_FRIENDS_LIST_BY_USER_ID = """
             SELECT u.* FROM users u
