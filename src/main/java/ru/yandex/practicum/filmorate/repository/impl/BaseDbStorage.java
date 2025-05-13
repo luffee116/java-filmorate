@@ -13,10 +13,10 @@ import java.util.Optional;
 public class BaseDbStorage {
     protected final JdbcTemplate jdbcTemplate;
 
-    private final String CHECK_USER_EXIST_BY_ID_QUERY = "SELECT COUNT(*) FROM users WHERE id = ?; ";
-    private final String CHECK_FILM_EXIST_BY_ID_QUERY = "SELECT COUNT(*) FROM films WHERE id = ?; ";
-    private final String CHECK_GENRE_EXIST_BY_ID_QUERY = "SELECT COUNT(*) FROM genres WHERE genre_id = ?; ";
-    private final String CHECK_RATING_EXIST_BY_ID_QUERY = "SELECT COUNT(*) FROM mpa_rating WHERE id = ?; ";
+    private static final String CHECK_USER_EXIST_BY_ID_QUERY = "SELECT COUNT(*) FROM users WHERE id = ?; ";
+    private static final String CHECK_FILM_EXIST_BY_ID_QUERY = "SELECT COUNT(*) FROM films WHERE id = ?; ";
+    private static final String CHECK_GENRE_EXIST_BY_ID_QUERY = "SELECT COUNT(*) FROM genres WHERE genre_id = ?; ";
+    private static final String CHECK_RATING_EXIST_BY_ID_QUERY = "SELECT COUNT(*) FROM mpa_rating WHERE id = ?; ";
 
     protected void checkEntityExist(Integer id, TypeEntity typeEntity) {
         String sql = getQuery(typeEntity);
