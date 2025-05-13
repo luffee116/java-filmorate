@@ -11,7 +11,6 @@ import ru.yandex.practicum.filmorate.exeptions.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
 
 import static org.junit.jupiter.api.Assertions.*;
-
 import java.time.LocalDate;
 
 @SpringBootTest
