@@ -1,10 +1,13 @@
 package ru.yandex.practicum.filmorate;
 
 import jakarta.validation.ValidationException;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.jdbc.core.JdbcTemplate;
 import ru.yandex.practicum.filmorate.controller.FilmController;
 import ru.yandex.practicum.filmorate.model.Film;
@@ -19,6 +22,8 @@ import java.util.Collection;
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
+@AutoConfigureTestDatabase
+@Import({FilmDbStorage.class})
 public class FilmControllerTest {
 
     @Autowired
@@ -43,7 +48,11 @@ public class FilmControllerTest {
         film.setReleaseDate(LocalDate.of(2020,12,1));
         film.setDuration(100L);
         film.setMpa(new MpaRating(1, null, null));
+    }
 
+    @AfterEach
+    void tearDown() {
+        jdbcTemplate.execute("DELETE FROM films");
     }
 
     @Test

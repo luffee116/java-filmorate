@@ -3,17 +3,22 @@ package ru.yandex.practicum.filmorate;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import org.springframework.context.annotation.Import;
 import org.springframework.jdbc.core.JdbcTemplate;
 import ru.yandex.practicum.filmorate.controller.UserController;
 import ru.yandex.practicum.filmorate.exeptions.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.repository.impl.UserDbStorage;
 
 import static org.junit.jupiter.api.Assertions.*;
 import java.time.LocalDate;
 
 @SpringBootTest
+@AutoConfigureTestDatabase
+@Import({UserDbStorage.class})
 public class UserControllerTest {
 
     @Autowired
