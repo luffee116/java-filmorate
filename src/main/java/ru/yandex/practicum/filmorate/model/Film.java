@@ -21,25 +21,24 @@ import java.util.Set;
 @AllArgsConstructor
 @Data
 public class Film {
-    @NotNull(message = "Id не может быть пустой")
     private Integer id;
 
-    @NotBlank(message = "Name не должен быть пустой", groups = Default.class)
-    @NotNull(message = "Name не должен быть null", groups = Default.class)
+    @NotBlank(message = "Name не должен быть пустой")
+    @NotNull(message = "Name не должен быть null")
     private String name;
 
-    @Size(max = 200, message = "Описание должно быть не более 200 символов", groups = Default.class)
+    @Size(max = 200, message = "Описание должно быть не более 200 символов")
     private String description;
 
-    @NotNull(message = "Дата релиза не может быть пустой", groups = Default.class)
+    @NotNull(message = "Дата релиза не может быть пустой")
     private LocalDate releaseDate;
 
-    @Positive(message = "Длина фильма должна быть положительным числом", groups = Default.class)
+    @Positive(message = "Длина фильма должна быть положительным числом")
     private Long duration;
 
     private Set<Genre> genres;
 
-    @NotNull(message = "Mpa не может быть пустой", groups = Default.class)
+    @NotNull(message = "Mpa не может быть пустой")
     private MpaRating mpa;
 
     private final Set<Integer> likes = new HashSet<>();
