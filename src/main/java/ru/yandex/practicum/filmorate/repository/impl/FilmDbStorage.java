@@ -37,38 +37,36 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
             DELETE FROM film_likes WHERE USER_ID = ? AND FILM_ID = ?;
             """;
     private static final String GET_POPULAR_FILM_QUERY = """
-            SELECT
-                    f.id,
-                    f.name,
-                    f.description,
-                    f.release_date,
-                    f.duration,
-                    m.ID mpa_id,
-                    m.name mpa_name,
-                    m.description mpa_description,
-                    COUNT(fl.user_id) likes_count
-                FROM
-                    films f
-                JOIN
-                    film_likes fl ON f.id = fl.film_id
-                JOIN
-                    mpa_rating m ON f.mpa_rating_id = m.id
-                GROUP BY
-                    f.id, f.name, f.description, f.release_date, f.duration, m.name
-                ORDER BY
-                    likes_count DESC
+            SELECT f.id,
+                   f.name,
+                   f.description,
+                   f.release_date,
+                   f.DURATION,
+                   m.id mpa_id,
+                   m.name mpa_name,
+                   m.description mpa_description,
+                    COUNT(l.USER_ID) likes_count
+                FROM films f
+                LEFT JOIN mpa_rating m ON f.mpa_rating_id = m.id
+                LEFT JOIN film_likes l ON f.id = l.film_id
+                GROUP BY f.id
+                ORDER BY likes_count DESC
                 LIMIT ?;
             """;
     private static final String ADD_FILM_GENRES_QUERY = """
             INSERT INTO film_genres (film_id, genre_id) VALUES (?, ?);
             """;
     private static final String GET_ALL_FILMS_QUERY = """
-                    SELECT f.*,
-                           m.ID mpa_id,
-                           m.name mpa_name,
-                           m.description mpa_description
-                    FROM films f
-                    JOIN mpa_rating m ON f.mpa_rating_id = m.id;
+                SELECT f.id,
+                       f.name,
+                       f.description,
+                       f.release_date,
+                       f.DURATION,
+                       m.id mpa_id,
+                       m.name mpa_name,
+                       m.description mpa_description
+                FROM films f
+                LEFT JOIN mpa_rating m ON f.mpa_rating_id = m.id
             """;
     private static final String GET_GENRES_ID_FOR_FILM_ID_QUERY = """
                     SELECT g.genre_id,
@@ -153,16 +151,13 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
     // Получение всех фильмов ––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
     @Override
     public List<Film> getAll() {
-        String sql = """
-                SELECT f.id, f.name, f.description, f.release_date,f.DURATION, m.id mpa_id, m.name mpa_name, m.description mpa_description
-                FROM films f
-                LEFT JOIN mpa_rating m ON f.mpa_rating_id = m.id
-                """;
-        List<FilmDto> films = jdbcTemplate.query(sql, new FilmRowMapper());
+        Map<Integer, List<Integer>> likes = setUpLikes();
+        Map<Integer, List<GenreDto>> genres = setUpGenres();
 
-        films.forEach(film -> film.setGenres(new HashSet<>(setUpGenres().getOrDefault(film.getId(), List.of()))));
-        films.forEach(film -> film.setLikes(new HashSet<>(setUpLikes().getOrDefault(film.getId(), List.of()))));
-        return films.stream().map(FilmMapper::mapToFilm).toList();
+        List<FilmDto> films = jdbcTemplate.query(GET_ALL_FILMS_QUERY, new FilmRowMapper());
+
+        List<FilmDto> filmsToResponse = addGenresAndLikesToFilmList(films, likes, genres);
+        return filmsToResponse.stream().map(FilmMapper::mapToFilm).toList();
     }
 
     // Получение фильма по id ––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
@@ -194,21 +189,13 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
     // Получение списка популярных фильмов –––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
     @Override
     public List<Film> getPopularFilm(Integer count) {
-        String sqlPopular = """
-                SELECT f.id, f.name, f.description, f.release_date,f.DURATION, m.id mpa_id, m.name mpa_name, m.description mpa_description,
-                       COUNT(l.USER_ID) likes_count
-                FROM films f
-                LEFT JOIN mpa_rating m ON f.mpa_rating_id = m.id
-                LEFT JOIN film_likes l ON f.id = l.film_id
-                GROUP BY f.id
-                ORDER BY likes_count DESC
-                LIMIT ?;
-                """;
-        List<FilmDto> films = jdbcTemplate.query(sqlPopular, new FilmRowMapper(), count);
+        Map<Integer, List<Integer>> likes = setUpLikes();
+        Map<Integer, List<GenreDto>> genres = setUpGenres();
 
-        films.forEach(film -> film.setGenres(new HashSet<>(setUpGenres().getOrDefault(film.getId(), List.of()))));
-        films.forEach(film -> film.setLikes(new HashSet<>(setUpLikes().getOrDefault(film.getId(), List.of()))));
-        return films.stream().map(FilmMapper::mapToFilm).toList();
+        List<FilmDto> films = jdbcTemplate.query(GET_POPULAR_FILM_QUERY, new FilmRowMapper(), count);
+
+        List<FilmDto> filmsToResponse = addGenresAndLikesToFilmList(films, likes, genres);
+        return filmsToResponse.stream().map(FilmMapper::mapToFilm).toList();
     }
 
 
@@ -236,6 +223,18 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
         Integer filmId = filmDto.getId();
         filmDto.setGenres(loadGenresForFilm(filmId));
         filmDto.setLikes(loadLikesForFilm(filmId));
+    }
+
+    //Наполнение фильма
+    private List<FilmDto> addGenresAndLikesToFilmList(List<FilmDto> films,
+                                                      Map<Integer, List<Integer>> likes,
+                                                      Map<Integer, List<GenreDto>> genres) {
+        films.forEach(filmDto -> {
+            filmDto.setGenres(new HashSet<>(genres.getOrDefault(filmDto.getId(), List.of())));
+            filmDto.setLikes(new HashSet<>(likes.getOrDefault(filmDto.getId(), List.of())));
+        });
+
+        return films;
     }
 
     // Проверка существования фильма
