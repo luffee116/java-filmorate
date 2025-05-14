@@ -9,8 +9,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.jdbc.core.JdbcTemplate;
 import ru.yandex.practicum.filmorate.controller.UserController;
+import ru.yandex.practicum.filmorate.dto.UserDto;
 import ru.yandex.practicum.filmorate.exeptions.ValidationException;
-import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.repository.impl.UserDbStorage;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -27,13 +27,13 @@ public class UserControllerTest {
     @Autowired
     UserController userController;
 
-    User user;
+    UserDto user;
 
     @BeforeEach
     void setUp() {
         jdbcTemplate.execute("DELETE FROM users");
 
-        user = new User();
+        user = new UserDto();
         user.setId(1);
         user.setEmail("test@email.ru");
         user.setLogin("test");
@@ -42,7 +42,7 @@ public class UserControllerTest {
 
     @Test
     void testAddFilm() {
-        User created = userController.addUser(user);
+        UserDto created = userController.addUser(user);
         assertNotNull(created.getId());
         assertEquals("test@email.ru", created.getEmail());
         assertEquals("test", created.getLogin());
@@ -51,22 +51,15 @@ public class UserControllerTest {
 
     @Test
     void testUpdateFilm() {
-        User created = userController.addUser(user);
-        User newUser = new User();
+        UserDto created = userController.addUser(user);
+        UserDto newUser = new UserDto();
         newUser.setId(created.getId());
         newUser.setLogin("UPDATED");
         newUser.setEmail(created.getEmail());
         newUser.setBirthday(LocalDate.of(1998,12,28));
-        User updated = userController.updateUser(newUser);
+        UserDto updated = userController.updateUser(newUser);
         assertEquals("UPDATED", updated.getLogin());
         assertEquals(LocalDate.of(1998,12,28), updated.getBirthday());
-    }
-
-    @Test
-    void testGetUserById() {
-        User created = userController.addUser(user);
-        assertEquals("test", created.getLogin());
-        assertEquals(user.getBirthday(), created.getBirthday());
     }
 
     @Test
@@ -80,7 +73,7 @@ public class UserControllerTest {
 
     @Test
     void validateUser_ShouldThrowWhenBlankEmail() {
-        User user = User.builder()
+        UserDto user = UserDto.builder()
                 .email(" ")
                 .login("login")
                 .name("test")
@@ -92,7 +85,7 @@ public class UserControllerTest {
 
     @Test
     void validateUser_ShouldTrowWhenWrongEmail() {
-        User user = User.builder()
+        UserDto user = UserDto.builder()
                 .email("test.ya.ru")
                 .login("login")
                 .name("test")
@@ -104,7 +97,7 @@ public class UserControllerTest {
 
     @Test
     void validateUser_ShouldThrowWhenBlankLogin() {
-        User user = User.builder()
+        UserDto user = UserDto.builder()
                 .email("aliullov@mail.ru")
                 .login("")
                 .name("test")
@@ -116,7 +109,7 @@ public class UserControllerTest {
 
     @Test
     void validateUser_ShouldThrowWhenSpaceInLogin() {
-        User user = User.builder()
+        UserDto user = UserDto.builder()
                 .email("aliullov@mail.ru")
                 .login("luffee kazan")
                 .name("test")
@@ -128,7 +121,7 @@ public class UserControllerTest {
 
     @Test
     void validateUser_ShouldThrowWhenBirthdayIsNull() {
-        User user = User.builder()
+        UserDto user = UserDto.builder()
                 .email("aliullov@mail.ru")
                 .login("luffee")
                 .name("test")
@@ -140,7 +133,7 @@ public class UserControllerTest {
 
     @Test
     void validateUser_ShouldThrowWhenBirthdayAfterNow() {
-        User user = User.builder()
+        UserDto user = UserDto.builder()
                 .email("aliullov@mail.ru")
                 .login("luffee")
                 .name("test")
@@ -152,7 +145,7 @@ public class UserControllerTest {
 
     @Test
     void validateUser_ShouldAcceptCorrectBirthday() {
-        User user = User.builder()
+        UserDto user = UserDto.builder()
                 .email("aliullov@mail.ru")
                 .login("luffee")
                 .name("test")

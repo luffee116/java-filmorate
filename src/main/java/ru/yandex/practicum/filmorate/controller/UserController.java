@@ -1,15 +1,17 @@
 package ru.yandex.practicum.filmorate.controller;
 
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.dto.UserDto;
 import ru.yandex.practicum.filmorate.service.UserService;
 
-import java.util.Collection;
 import java.util.List;
 
 
+@Validated
 @AllArgsConstructor
 @RestController
 @RequestMapping("/users")
@@ -17,18 +19,18 @@ public class UserController {
     UserService userService;
 
     @GetMapping
-    public Collection<User> getAll() {
+    public List<UserDto> getAll() {
         return userService.getAll();
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public User addUser(@RequestBody User requestUser) {
+    public UserDto addUser(@Valid @RequestBody UserDto requestUser) {
         return userService.addUser(requestUser);
     }
 
     @PutMapping
-    public User updateUser(@RequestBody User requestUser) {
+    public UserDto updateUser(@Valid @RequestBody UserDto requestUser) {
         return userService.updateUser(requestUser);
     }
 
@@ -49,7 +51,7 @@ public class UserController {
     }
 
     @GetMapping("/{userId}/friends/common/{friendId}")
-    public List<User> getCommonFriends(
+    public List<UserDto> getCommonFriends(
             @PathVariable Integer userId,
             @PathVariable Integer friendId
     ) {
@@ -57,7 +59,7 @@ public class UserController {
     }
 
     @GetMapping("/{userId}/friends")
-    public List<User> getUserFriends(@PathVariable Integer userId) {
+    public List<UserDto> getUserFriends(@PathVariable Integer userId) {
         return userService.getUserFriends(userId);
     }
 }

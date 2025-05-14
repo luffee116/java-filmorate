@@ -34,6 +34,4 @@ public class ApiExceptionHandler {
     public Exception handleValidation(ConstraintViolationException e) {
         return new Exception("Validation exception", LocalDateTime.now());
     }
-
-
 }

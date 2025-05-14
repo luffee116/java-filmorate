@@ -10,7 +10,6 @@ import ru.yandex.practicum.filmorate.rowMappers.GenreRowMapper;
 
 import java.util.Collection;
 import java.util.Objects;
-import java.util.Optional;
 
 @Repository
 public class GenreDbStorage extends BaseDbStorage implements GenreStorage {
@@ -30,11 +29,10 @@ public class GenreDbStorage extends BaseDbStorage implements GenreStorage {
     }
 
     @Override
-    public Optional<Genre> getGenre(Integer id) {
+    public Genre getGenre(Integer id) {
         Objects.requireNonNull(id, "Genre id can't be null");
         checkGenreExist(id);
-        Genre genre = jdbcTemplate.queryForObject(GET_GENRE_QUERY, new GenreRowMapper(), id);
-        return Optional.ofNullable(genre);
+        return jdbcTemplate.queryForObject(GET_GENRE_QUERY, new GenreRowMapper(), id);
     }
 
     @Override

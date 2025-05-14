@@ -10,7 +10,6 @@ import ru.yandex.practicum.filmorate.rowMappers.MpaRatingRowMapper;
 import java.util.Collection;
 
 import java.util.Objects;
-import java.util.Optional;
 
 @Repository
 public class MpaRatingDbStorage extends BaseDbStorage implements MpaRatingStorage {
@@ -31,11 +30,10 @@ public class MpaRatingDbStorage extends BaseDbStorage implements MpaRatingStorag
     }
 
     @Override
-    public Optional<MpaRating> getMpaRating(Integer id) {
+    public MpaRating getMpaRating(Integer id) {
         Objects.requireNonNull(id, "Rating id can't be null");
         checkMpaRatingExist(id);
-        MpaRating rating = jdbcTemplate.queryForObject(GET_MPA_RATING_BY_ID_QUERY, new MpaRatingRowMapper(), id);
-        return Optional.ofNullable(rating);
+        return jdbcTemplate.queryForObject(GET_MPA_RATING_BY_ID_QUERY, new MpaRatingRowMapper(), id);
     }
 
     @Override

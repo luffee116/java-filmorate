@@ -7,35 +7,51 @@ import java.util.stream.Collectors;
 
 public final class FilmMapper {
     public static Film mapToFilm(FilmDto filmDto) {
-        return Film.builder()
-                .id(filmDto.getId())
-                .name(filmDto.getName())
-                .description(filmDto.getDescription())
-                .mpa(MpaRatingMapper.mapToRating(filmDto.getMpa()))
-                .duration(filmDto.getDuration())
-                .releaseDate(filmDto.getReleaseDate())
-                .genres(filmDto.getGenres()
-                        .stream()
-                        .map(GenreMapper::mapToGenre)
-                        .collect(Collectors.toSet()))
-                .build();
+        if (filmDto.getGenres() == null) {
+            return Film.builder()
+                    .id(filmDto.getId())
+                    .name(filmDto.getName())
+                    .description(filmDto.getDescription())
+                    .mpa(MpaRatingMapper.mapToRating(filmDto.getMpa()))
+                    .duration(filmDto.getDuration())
+                    .releaseDate(filmDto.getReleaseDate())
+                    .likes(filmDto.getLikes())
+                    .build();
+        } else {
+            return Film.builder()
+                    .id(filmDto.getId())
+                    .name(filmDto.getName())
+                    .description(filmDto.getDescription())
+                    .mpa(MpaRatingMapper.mapToRating(filmDto.getMpa()))
+                    .duration(filmDto.getDuration())
+                    .releaseDate(filmDto.getReleaseDate())
+                    .genres(filmDto.getGenres()
+                            .stream()
+                            .map(GenreMapper::mapToGenre)
+                            .collect(Collectors.toSet()))
+                    .likes(filmDto.getLikes())
+                    .build();
+        }
     }
 
     public static Film updateFilm(FilmDto filmDto, Film film) {
         if (!filmDto.getName().isBlank()) {
             film.setName(filmDto.getName());
         }
-        if (!film.getDescription().isBlank()) {
-            film.setDescription(film.getDescription());
+        if (!filmDto.getDescription().isBlank()) {
+            film.setDescription(filmDto.getDescription());
         }
-        if (film.getMpa() != null) {
-            film.setMpa(film.getMpa());
+        if (filmDto.getMpa() != null) {
+            film.setMpa(MpaRatingMapper.mapToRating(filmDto.getMpa()));
         }
-        if (film.getDuration() != null) {
-            film.setDuration(film.getDuration());
+        if (filmDto.getDuration() != null) {
+            film.setDuration(filmDto.getDuration());
         }
-        if (film.getGenres() != null) {
-            film.setGenres(film.getGenres());
+        if (filmDto.getGenres() != null) {
+            film.setGenres(GenreMapper.mapToGenres(filmDto.getGenres()));
+        }
+        if (filmDto.getReleaseDate() != null) {
+            film.setReleaseDate(filmDto.getReleaseDate());
         }
         return film;
     }

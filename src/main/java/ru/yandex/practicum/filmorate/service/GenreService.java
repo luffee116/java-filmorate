@@ -3,11 +3,13 @@ package ru.yandex.practicum.filmorate.service;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.dto.GenreDto;
+import ru.yandex.practicum.filmorate.mapper.dto.GenreDtoMapper;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.repository.GenreStorage;
 
 import java.util.Collection;
-import java.util.Optional;
+import java.util.stream.Collectors;
 
 @AllArgsConstructor
 @Service
@@ -15,13 +17,15 @@ import java.util.Optional;
 public class GenreService {
     private final GenreStorage genreStorage;
 
-    public Optional<Genre> getGenreById(Integer id) {
+    public GenreDto getGenreById(Integer id) {
         log.info("Отправлен жанр с id: {}", id);
-        return genreStorage.getGenre(id);
+        Genre genre = genreStorage.getGenre(id);
+        return GenreDtoMapper.mapToDto(genre);
     }
 
-    public Collection<Genre> getGenres() {
+    public Collection<GenreDto> getGenres() {
         log.info("Отправлен список всех жанров");
-        return genreStorage.getAllGenres();
+        Collection<Genre> genres = genreStorage.getAllGenres();
+        return genres.stream().map(GenreDtoMapper::mapToDto).collect(Collectors.toList());
     }
 }

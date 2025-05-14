@@ -7,7 +7,6 @@ import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.dto.FilmDto;
 import ru.yandex.practicum.filmorate.dto.GenreDto;
-import ru.yandex.practicum.filmorate.exeptions.ValidationException;
 import ru.yandex.practicum.filmorate.mapper.toEntity.FilmMapper;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
@@ -19,7 +18,6 @@ import ru.yandex.practicum.filmorate.rowMappers.GenreDtoRowMapper;
 import java.sql.Date;
 import java.sql.PreparedStatement;
 
-import java.time.LocalDate;
 import java.util.*;
 
 @Repository
@@ -155,6 +153,7 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
     // Получение всех фильмов ––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
     @Override
     public List<Film> getAll() {
+
         List<FilmDto> allFilms = jdbcTemplate.query(GET_ALL_FILMS_QUERY, new FilmRowMapper());
 
         allFilms.forEach(this::addGenresAndLikesToFilm);
@@ -204,23 +203,6 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
 
 
     // ВСПОМОГАТЕЛЬНЫЕ МЕТОДЫ ––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
-    private void validateFilm(Film film) {
-        if (film.getDuration() <= 0) {
-            throw new ValidationException("Продолжительность фильма должна быть положительным числом");
-        }
-        if (film.getName().isBlank()) {
-            throw new ValidationException("Название фильма не может быть пустым");
-        }
-        if (!film.getDescription().isBlank()) {
-            if (film.getDescription().length() > 200) {
-                throw new ValidationException("Длина описания должна быть не больше 200 символов");
-            }
-        }
-        if (film.getReleaseDate() == null || film.getReleaseDate().isBefore(LocalDate.of(1950, 12, 28))) {
-            throw new ValidationException("Дата релиза не может быть ранее, чем 28 декабря 1950г.");
-        }
-    }
-
     // Добавление жанров
     private void addFilmGenres(Set<Genre> genresSet, int id) {
         if (genresSet != null && !genresSet.isEmpty()) {
@@ -260,5 +242,18 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
         Integer filmId = filmDto.getId();
         filmDto.setGenres(loadGenresForFilm(filmId));
         filmDto.setLikes(loadLikesForFilm(filmId));
+    }
+
+    private void test(List<Integer> ids) {
+        String sql = """
+                 SELECT g.genre_id, g.name
+                 FROM film_genres fg
+                 JOIN genres g ON fg.genre_id = g.genre_id
+                 WHERE fg.film_id = ?;
+                """;
+
+
+        List<Map<String, Object>> rows = jdbcTemplate.queryForList(sql);
+        Map<Integer, Set<GenreDto>> result = new HashMap<>();
     }
 }
