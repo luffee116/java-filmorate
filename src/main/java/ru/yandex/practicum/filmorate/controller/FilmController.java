@@ -59,4 +59,11 @@ public class FilmController {
     public List<FilmDto> getPopularFilm(@RequestParam(name = "count", required = false, defaultValue = "10") int count) {
         return filmService.getPopularFilm(count);
     }
+
+    @PutMapping("/{filmId}/review/{userId}")
+    public void addReview(@PathVariable Integer filmId,
+                          @PathVariable Integer userId,
+                          @RequestBody Map<String, String> text) {
+        filmService.addReview(filmId, userId, text.get("text"));
+    }
 }

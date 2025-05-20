@@ -64,9 +64,12 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
                        f.DURATION,
                        m.id mpa_id,
                        m.name mpa_name,
-                       m.description mpa_description
+                       m.description mpa_description,
+                       fr.user_id,
+                       fr.text
                 FROM films f
                 LEFT JOIN mpa_rating m ON f.mpa_rating_id = m.id
+                LEFT JOIN FILM_REVIEWS fr ON f.id = fr.film_id
             """;
     private static final String GET_GENRES_ID_FOR_FILM_ID_QUERY = """
                     SELECT g.genre_id,
@@ -93,8 +96,19 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
             DELETE FROM film_genres WHERE film_id = ?;
             """;
 
+    private static final String ADD_REVIEW_TO_FILM_QUERY = """
+            INSERT INTO FILM_REVIEWS (FILM_ID, USER_ID, TEXT) VALUES (?, ?, ?);
+            """;
+
     public FilmDbStorage(JdbcTemplate jdbcTemplate) {
         super(jdbcTemplate);
+    }
+
+    //Создание отзыва ––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
+    @Override
+    public Optional<Boolean> addReview(Integer filmId, Integer userId, String reviewText) {
+        int rowsUpdated = jdbcTemplate.update(ADD_REVIEW_TO_FILM_QUERY, filmId, userId, reviewText);
+        return Optional.of(rowsUpdated > 0);
     }
 
     // Создание фильма –––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
@@ -105,7 +119,8 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
         KeyHolder keyHolder = new GeneratedKeyHolder();
 
         jdbcTemplate.update(connection -> {
-            PreparedStatement ps = connection.prepareStatement(CREATE_FILM_QUERY, PreparedStatement.RETURN_GENERATED_KEYS);
+            PreparedStatement ps = connection.prepareStatement(CREATE_FILM_QUERY,
+                    PreparedStatement.RETURN_GENERATED_KEYS);
 
             ps.setString(1, film.getName());
             ps.setString(2, film.getDescription());
@@ -153,10 +168,11 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
     public List<Film> getAll() {
         Map<Integer, List<Integer>> likes = setUpLikes();
         Map<Integer, List<GenreDto>> genres = setUpGenres();
+        Map<Integer, Map<Integer, String>> reviews = setUpReviews();
 
         List<FilmDto> films = jdbcTemplate.query(GET_ALL_FILMS_QUERY, new FilmRowMapper());
 
-        List<FilmDto> filmsToResponse = addGenresAndLikesToFilmList(films, likes, genres);
+        List<FilmDto> filmsToResponse = addFilmInfo(films, likes, genres, reviews);
         return filmsToResponse.stream().map(FilmMapper::mapToFilm).toList();
     }
 
@@ -166,7 +182,7 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
         FilmDto filmDto = jdbcTemplate.queryForObject(GET_FILM_BY_ID_QUERY, new FilmRowMapper(), id);
 
         if (filmDto != null) {
-            addGenresAndLikesToFilm(filmDto);
+            addGenresAndLikesAndReviewsToFilm(filmDto);
             return Optional.of(FilmMapper.mapToFilm(filmDto));
         }
         return Optional.empty();
@@ -191,10 +207,11 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
     public List<Film> getPopularFilm(Integer count) {
         Map<Integer, List<Integer>> likes = setUpLikes();
         Map<Integer, List<GenreDto>> genres = setUpGenres();
+        Map<Integer, Map<Integer, String>> reviews = setUpReviews();
 
         List<FilmDto> films = jdbcTemplate.query(GET_POPULAR_FILM_QUERY, new FilmRowMapper(), count);
 
-        List<FilmDto> filmsToResponse = addGenresAndLikesToFilmList(films, likes, genres);
+        List<FilmDto> filmsToResponse = addFilmInfo(films, likes, genres, reviews);
         return filmsToResponse.stream().map(FilmMapper::mapToFilm).toList();
     }
 
@@ -219,19 +236,21 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
     }
 
     // Преобразование ––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
-    private void addGenresAndLikesToFilm(FilmDto filmDto) {
+    private void addGenresAndLikesAndReviewsToFilm(FilmDto filmDto) {
         Integer filmId = filmDto.getId();
         filmDto.setGenres(loadGenresForFilm(filmId));
         filmDto.setLikes(loadLikesForFilm(filmId));
     }
 
     //Наполнение фильма
-    private List<FilmDto> addGenresAndLikesToFilmList(List<FilmDto> films,
+    private List<FilmDto> addFilmInfo(List<FilmDto> films,
                                                       Map<Integer, List<Integer>> likes,
-                                                      Map<Integer, List<GenreDto>> genres) {
+                                                      Map<Integer, List<GenreDto>> genres,
+                                                      Map<Integer, Map<Integer, String>> reviews) {
         films.forEach(filmDto -> {
             filmDto.setGenres(new HashSet<>(genres.getOrDefault(filmDto.getId(), List.of())));
             filmDto.setLikes(new HashSet<>(likes.getOrDefault(filmDto.getId(), List.of())));
+            filmDto.setReview(new HashMap<>(reviews.getOrDefault(filmDto.getId(), Map.of())));
         });
 
         return films;
@@ -291,5 +310,25 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
             return likes;
         });
         return filmLikes;
+    }
+
+    private Map<Integer, Map<Integer, String>> setUpReviews() {
+        String reviewsQuery = """
+            SELECT fr.film_id, fr.user_id, fr.text
+            FROM film_reviews fr
+            """;
+
+        return jdbcTemplate.query(reviewsQuery, rs -> {
+            Map<Integer, Map<Integer, String>> reviews = new HashMap<>();
+            while (rs.next()) {
+                Integer filmId = rs.getInt("film_id");
+                Integer userId = rs.getInt("user_id");
+                String reviewText = rs.getString("text");
+
+                reviews.computeIfAbsent(filmId, k -> new HashMap<>())
+                        .put(userId, reviewText);
+            }
+            return reviews;
+        });
     }
 }

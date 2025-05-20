@@ -17,6 +17,7 @@ public final class FilmDtoMapper {
                     .duration(film.getDuration())
                     .mpa(MpaDtoRatingMapper.mapToDto(film.getMpa()))
                     .likes(film.getLikes())
+                    .review(film.getReview())
                     .build();
         } else {
             return FilmDto.builder()
@@ -32,6 +33,7 @@ public final class FilmDtoMapper {
                             .collect(Collectors.toSet())
                     )
                     .likes(film.getLikes())
+                    .review(film.getReview())
                     .build();
         }
     }

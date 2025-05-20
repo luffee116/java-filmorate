@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.dto.FilmDto;
 import ru.yandex.practicum.filmorate.exeptions.FilmNotFoundException;
 import ru.yandex.practicum.filmorate.exeptions.LikeException;
+import ru.yandex.practicum.filmorate.exeptions.NotFoundException;
 import ru.yandex.practicum.filmorate.exeptions.UserNotFoundException;
 import ru.yandex.practicum.filmorate.mapper.dto.FilmDtoMapper;
 import ru.yandex.practicum.filmorate.mapper.toEntity.FilmMapper;
@@ -76,6 +77,13 @@ public class FilmService {
         Optional<Film> film = filmStorage.getById(id);
         log.info("Отправлен фильм с id: {}", id);
         return Optional.of(FilmDtoMapper.mapToFilmDto(film.get()));
+    }
+
+    public void addReview(Integer filmId, Integer userId, String text) {
+        validateFilmAndUserId(filmId, userId);
+        if (filmStorage.addReview(filmId, userId, text).isPresent()) {
+            log.info("Добавлен отзыв для фильма id: {}, пользователем с id: {}", filmId, userId);
+        }
     }
 
     private void validateFilmAndUserId(Integer filmId, Integer userId) {

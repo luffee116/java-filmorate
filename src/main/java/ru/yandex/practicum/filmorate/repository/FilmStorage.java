@@ -20,4 +20,6 @@ public interface FilmStorage {
     Optional<Boolean> removeLike(Integer filmId, Integer userId);
 
     List<Film> getPopularFilm(Integer count);
+
+    Optional<Boolean> addReview(Integer filmId, Integer userId, String text);
 }

@@ -7,31 +7,24 @@ import java.util.stream.Collectors;
 
 public final class FilmMapper {
     public static Film mapToFilm(FilmDto filmDto) {
-        if (filmDto.getGenres() == null) {
-            return Film.builder()
-                    .id(filmDto.getId())
-                    .name(filmDto.getName())
-                    .description(filmDto.getDescription())
-                    .mpa(MpaRatingMapper.mapToRating(filmDto.getMpa()))
-                    .duration(filmDto.getDuration())
-                    .releaseDate(filmDto.getReleaseDate())
-                    .likes(filmDto.getLikes())
-                    .build();
-        } else {
-            return Film.builder()
-                    .id(filmDto.getId())
-                    .name(filmDto.getName())
-                    .description(filmDto.getDescription())
-                    .mpa(MpaRatingMapper.mapToRating(filmDto.getMpa()))
-                    .duration(filmDto.getDuration())
-                    .releaseDate(filmDto.getReleaseDate())
-                    .genres(filmDto.getGenres()
-                            .stream()
-                            .map(GenreMapper::mapToGenre)
-                            .collect(Collectors.toSet()))
-                    .likes(filmDto.getLikes())
-                    .build();
+        Film.FilmBuilder builder = Film.builder()
+                .id(filmDto.getId())
+                .name(filmDto.getName())
+                .description(filmDto.getDescription())
+                .mpa(MpaRatingMapper.mapToRating(filmDto.getMpa()))
+                .duration(filmDto.getDuration())
+                .releaseDate(filmDto.getReleaseDate())
+                .likes(filmDto.getLikes())
+                .review(filmDto.getReview());
+
+        if (filmDto.getGenres() != null) {
+            builder.genres(filmDto.getGenres()
+                    .stream()
+                    .map(GenreMapper::mapToGenre)
+                    .collect(Collectors.toSet()));
         }
+
+        return builder.build();
     }
 
     public static Film updateFilm(FilmDto filmDto, Film film) {
