@@ -164,13 +164,11 @@ public class ReviewService {
      * Обновление рейтинга полезности отзыва
      */
     private void updateReviewUseful(Integer reviewId, boolean isLike, boolean isAdd) {
-        if (isLike) {
-            if (isAdd) reviewStorage.incrementUseful(reviewId);
-            else reviewStorage.decrementUseful(reviewId);
-        } else {
-            if (isAdd) reviewStorage.decrementUseful(reviewId);
-            else reviewStorage.incrementUseful(reviewId);
+        int delta = isLike ? 1 : -1; // лайк = +1, дизлайк = -1
+        if (!isAdd) {
+            delta *= -1; // если удаляем оценку, меняем знак
         }
+        reviewStorage.updateUseful(reviewId, delta); // атомарное обновление в БД
     }
 
     /**
@@ -187,13 +185,18 @@ public class ReviewService {
         Optional<Boolean> existingRating = reviewRatingStorage.getRating(reviewId, userId);
 
         if (existingRating.isPresent()) {
-            if (existingRating.get() == isLike) {
-                return;
+            boolean oldLike = existingRating.get();
+            if (oldLike == isLike) {
+                return; // оценка не изменилась
             }
-            reviewRatingStorage.updateRating(reviewId, userId, isLike);
-            updateReviewUseful(reviewId, existingRating.get(), true);
+            // Удаляем старую оценку (-1 или +1)
+            updateReviewUseful(reviewId, oldLike, false);
+            // Добавляем новую оценку (+1 или -1)
             updateReviewUseful(reviewId, isLike, true);
+            // Обновляем оценку в БД
+            reviewRatingStorage.updateRating(reviewId, userId, isLike);
         } else {
+            // Просто добавляем новую оценку
             reviewRatingStorage.addRating(reviewId, userId, isLike);
             updateReviewUseful(reviewId, isLike, true);
         }

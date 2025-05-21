@@ -204,5 +204,13 @@ public class ReviewDbStorage extends BaseDbStorage implements ReviewStorage {
         return jdbcTemplate.queryForObject(sql, Integer.class);
     }
 
+    @Override
+    public void updateUseful(Integer reviewId, int delta) {
+        jdbcTemplate.update(
+                "UPDATE reviews SET useful = useful + ? WHERE review_id = ?",
+                delta, reviewId
+        );
+    }
+
 
 }

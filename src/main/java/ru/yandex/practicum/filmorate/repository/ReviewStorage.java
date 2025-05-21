@@ -27,4 +27,6 @@ public interface ReviewStorage {
 
     Integer getLastReviewId();
 
+    void updateUseful(Integer reviewId, int delta);
+
 }
