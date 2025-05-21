@@ -92,12 +92,13 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
             DELETE FROM film_genres WHERE film_id = ?;
             """;
     private static final String GET_COMMON_FILMS = """
-            SELECT f.*
+            SELECT f.*, m.id AS mpa_id, m.name AS mpa_name, m.description AS mpa_description
             FROM films f
             JOIN film_likes fl1 ON f.id = fl1.film_id
             JOIN film_likes fl2 ON f.id = fl2.film_id
+            JOIN mpa_rating m ON f.mpa_rating_id = m.id
             WHERE fl1.user_id = ? AND fl2.user_id = ?
-            GROUP BY f.id
+            GROUP BY f.id, m.id, m.name, m.description
             ORDER BY (SELECT COUNT(*) FROM film_likes fl WHERE fl.film_id = f.id) DESC
             """;
 
