@@ -209,13 +209,16 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
     @Override
     @Transactional
     public void delete(Integer id) {
-        checkEntityExist(id, TypeEntity.FILM);
+        // Проверяем существование фильма
+        if (!existsById(id)) {
+            throw new NotFoundException("Фильм с id=" + id + " не найден");
+        }
 
-        // Сначала удаляем связанные данные
+        // Удаляем связанные данные
         jdbcTemplate.update("DELETE FROM film_likes WHERE film_id = ?", id);
         jdbcTemplate.update("DELETE FROM film_genres WHERE film_id = ?", id);
 
-        // Затем удаляем фильм
+        // Удаляем фильм
         jdbcTemplate.update("DELETE FROM films WHERE id = ?", id);
     }
 
