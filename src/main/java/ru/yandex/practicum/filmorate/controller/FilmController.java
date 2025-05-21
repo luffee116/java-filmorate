@@ -6,11 +6,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.dto.FilmDto;
-import ru.yandex.practicum.filmorate.exeptions.NotFoundException;
-import ru.yandex.practicum.filmorate.mapper.dto.FilmDtoMapper;
-import ru.yandex.practicum.filmorate.mapper.toEntity.FilmMapper;
-import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.repository.FilmStorage;
 import ru.yandex.practicum.filmorate.service.FilmService;
 
 import java.util.*;
@@ -21,7 +16,6 @@ import java.util.*;
 @RequestMapping("/films")
 public class FilmController {
     FilmService filmService;
-    FilmStorage filmStorage;
 
     @GetMapping
     public Collection<FilmDto> getAll() {
@@ -40,14 +34,8 @@ public class FilmController {
     }
 
     @PutMapping
-    public FilmDto update(FilmDto requestFilm) {
-        // 1. Проверяем существование фильма
-        if (!filmStorage.existsById(requestFilm.getId())) {
-            throw new NotFoundException("Film with id=" + requestFilm.getId() + " not found");
-        }
-        // 2. Обновляем фильм
-        Film updatedFilm = filmStorage.update(FilmMapper.mapToFilm(requestFilm));
-        return FilmDtoMapper.mapToFilmDto(updatedFilm);
+    public FilmDto updateFilm(@Valid @RequestBody FilmDto requestFilm) {
+        return filmService.update(requestFilm);
     }
 
     @PutMapping("/{filmId}/like/{userId}")

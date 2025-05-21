@@ -76,7 +76,7 @@ public class FilmControllerTest {
         newFilm.setMpa(new MpaDto(1, null, null));
         newFilm.setGenres(new HashSet<>(1));
 
-        FilmDto updated = filmController.update(newFilm);
+        FilmDto updated = filmController.updateFilm(newFilm);
 
         assertEquals("Один дома", updated.getName());
         assertEquals("Фильм о лучшем диктаторе", updated.getDescription());
