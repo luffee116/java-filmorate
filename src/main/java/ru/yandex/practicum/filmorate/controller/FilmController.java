@@ -39,6 +39,7 @@ public class FilmController {
         return filmService.create(requestFilm);
     }
 
+    @PutMapping
     public FilmDto update(FilmDto requestFilm) {
         // 1. Проверяем существование фильма
         if (!filmStorage.existsById(requestFilm.getId())) {
