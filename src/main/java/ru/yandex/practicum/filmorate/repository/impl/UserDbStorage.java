@@ -1,11 +1,13 @@
 package ru.yandex.practicum.filmorate.repository.impl;
 
+import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.dto.UserDto;
+import ru.yandex.practicum.filmorate.exeptions.NotFoundException;
 import ru.yandex.practicum.filmorate.exeptions.ValidationException;
 import ru.yandex.practicum.filmorate.mapper.toEntity.UserMapper;
 import ru.yandex.practicum.filmorate.repository.TypeEntity;
@@ -194,6 +196,43 @@ public class UserDbStorage extends BaseDbStorage implements UserStorage {
                 .toList());
     }
 
+    /**
+     * Удаляет пользователя по идентификатору.
+     *
+     * @param id идентификатор пользователя
+     * @throws NotFoundException если пользователь не найден
+     */
+    @Override
+    @Transactional
+    public void delete(Integer id) {
+        checkEntityExist(id, TypeEntity.USER);
+
+        // Удаляем дружеские связи
+        jdbcTemplate.update("DELETE FROM user_friends WHERE user_id = ? OR friend_id = ?", id, id);
+
+        // Удаляем лайки пользователя
+        jdbcTemplate.update("DELETE FROM film_likes WHERE user_id = ?", id);
+
+        // Удаляем пользователя
+        jdbcTemplate.update("DELETE FROM users WHERE id = ?", id);
+    }
+
+    /**
+     * Проверяет существование пользователя в базе данных по указанному идентификатору.
+     * <p>
+     * Использует эффективный запрос с EXISTS для минимальной нагрузки на базу данных.
+     * Особенно полезно для проверок перед выполнением операций удаления или модификации.
+     * </p>
+     *
+     * @param id идентификатор пользователя для проверки (должен быть не null)
+     * @return true - если пользователь с указанным ID существует, false - если не существует
+     * @throws IllegalArgumentException если переданный id равен null
+     */
+    @Override
+    public boolean existsById(Integer id) {
+        String sql = "SELECT EXISTS(SELECT 1 FROM users WHERE id = ?)";
+        return Boolean.TRUE.equals(jdbcTemplate.queryForObject(sql, Boolean.class, id));
+    }
     // ВСПОМОГАТЕЛЬНЫЙ МЕТОДЫ
 
     // Проверка существования пользователя –––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
@@ -224,4 +263,5 @@ public class UserDbStorage extends BaseDbStorage implements UserStorage {
         Integer userId = userDto.getId();
         userDto.setFriendsId(loadFriends(userId));
     }
+
 }

@@ -62,4 +62,15 @@ public class UserController {
     public List<UserDto> getUserFriends(@PathVariable Integer userId) {
         return userService.getUserFriends(userId);
     }
+
+    /**
+     * Удаляет пользователя по идентификатору.
+     *
+     * @param id идентификатор пользователя
+     */
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteUser(@PathVariable Integer id) {
+        userService.deleteUser(id);
+    }
 }

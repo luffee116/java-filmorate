@@ -59,4 +59,15 @@ public class FilmController {
     public List<FilmDto> getPopularFilm(@RequestParam(name = "count", required = false, defaultValue = "10") int count) {
         return filmService.getPopularFilm(count);
     }
+
+    /**
+     * Удаляет фильм по идентификатору.
+     *
+     * @param id идентификатор фильма
+     */
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteFilm(@PathVariable Integer id) {
+        filmService.deleteFilm(id);
+    }
 }

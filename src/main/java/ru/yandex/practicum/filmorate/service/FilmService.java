@@ -1,14 +1,13 @@
 package ru.yandex.practicum.filmorate.service;
 
-
+import jakarta.transaction.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.dto.FilmDto;
-import ru.yandex.practicum.filmorate.exeptions.FilmNotFoundException;
+import ru.yandex.practicum.filmorate.exeptions.NotFoundException;
 import ru.yandex.practicum.filmorate.exeptions.LikeException;
-import ru.yandex.practicum.filmorate.exeptions.UserNotFoundException;
 import ru.yandex.practicum.filmorate.mapper.dto.FilmDtoMapper;
 import ru.yandex.practicum.filmorate.mapper.toEntity.FilmMapper;
 import ru.yandex.practicum.filmorate.model.Film;
@@ -79,7 +78,21 @@ public class FilmService {
     }
 
     private void validateFilmAndUserId(Integer filmId, Integer userId) {
-        if (filmStorage.getById(filmId).isEmpty()) throw new FilmNotFoundException("Film not found");
-        if (userStorage.getUserById(userId).isEmpty()) throw new UserNotFoundException("User not found");
+        if (filmStorage.getById(filmId).isEmpty()) throw new NotFoundException("Film not found");
+        if (userStorage.getUserById(userId).isEmpty()) throw new NotFoundException("User not found");
+    }
+
+    /**
+     * Удаляет фильм из хранилища.
+     *
+     * @param id идентификатор фильма
+     */
+    @Transactional
+    public void deleteFilm(Integer id) {
+        if (!filmStorage.existsById(id)) {
+            throw new NotFoundException("Фильм с id не найден: " + id);
+        }
+        filmStorage.delete(id);
+        log.info("Удаленный фильм с id: {}", id);
     }
 }

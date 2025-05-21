@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.repository.impl;
 
+import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
@@ -7,6 +8,7 @@ import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.dto.FilmDto;
 import ru.yandex.practicum.filmorate.dto.GenreDto;
+import ru.yandex.practicum.filmorate.exeptions.NotFoundException;
 import ru.yandex.practicum.filmorate.mapper.toEntity.FilmMapper;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
@@ -198,6 +200,40 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
         return filmsToResponse.stream().map(FilmMapper::mapToFilm).toList();
     }
 
+    /**
+     * Удаляет фильм по идентификатору.
+     *
+     * @param id идентификатор фильма
+     * @throws NotFoundException если фильм не найден
+     */
+    @Override
+    @Transactional
+    public void delete(Integer id) {
+        checkEntityExist(id, TypeEntity.FILM);
+
+        // Сначала удаляем связанные данные
+        jdbcTemplate.update("DELETE FROM film_likes WHERE film_id = ?", id);
+        jdbcTemplate.update("DELETE FROM film_genres WHERE film_id = ?", id);
+
+        // Затем удаляем фильм
+        jdbcTemplate.update("DELETE FROM films WHERE id = ?", id);
+    }
+
+    /**
+     * Проверяет существование фильма в базе данных по указанному идентификатору.
+     * <p>
+     * Метод выполняет оптимизированный запрос к базе данных, используя оператор EXISTS,
+     * который прекращает поиск после нахождения первой записи.
+     * </p>
+     *
+     * @param id идентификатор фильма для проверки (должен быть не null)
+     * @return true - если фильм с указанным ID существует, false - если не существует
+     */
+    @Override
+    public boolean existsById(Integer id) {
+        String sql = "SELECT EXISTS(SELECT 1 FROM films WHERE id = ?)";
+        return Boolean.TRUE.equals(jdbcTemplate.queryForObject(sql, Boolean.class, id));
+    }
 
     // ВСПОМОГАТЕЛЬНЫЕ МЕТОДЫ ––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
     // Добавление жанров
