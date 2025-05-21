@@ -36,7 +36,7 @@ public class UserController {
 
     @GetMapping("/{id}")
     public UserDto getUserById(@PathVariable Integer id) {
-        return userService.getUserById(id); // Теперь метод возвращает UserDto напрямую
+        return userService.getUserById(id);
     }
 
     @PutMapping("/{userId}/friends/{friendId}")

@@ -29,10 +29,9 @@ public class UserService {
     }
 
     public UserDto getUserById(Integer id) {
-        // Получаем Optional<User> из хранилища
-        return userStorage.getUserById(id)
-                .map(UserDtoMapper::mapToUserDto) // Преобразуем в UserDto
-                .orElseThrow(() -> new NotFoundException("User with id=" + id + " not found"));
+        User user = userStorage.getUserById(id)
+                .orElseThrow(() -> new NotFoundException("User not found"));
+        return UserDtoMapper.mapToUserDto(user);
     }
 
     public UserDto addUser(UserDto user) {

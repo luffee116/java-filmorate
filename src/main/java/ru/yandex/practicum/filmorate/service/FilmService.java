@@ -71,10 +71,10 @@ public class FilmService {
         return popularFilms.stream().map(FilmDtoMapper::mapToFilmDto).toList();
     }
 
-    public Optional<FilmDto> getFilmById(Integer id) {
-        Optional<Film> film = filmStorage.getById(id);
-        log.info("Отправлен фильм с id: {}", id);
-        return Optional.of(FilmDtoMapper.mapToFilmDto(film.get()));
+    public FilmDto getFilmById(Integer id) {
+        Film film = filmStorage.getById(id)
+                .orElseThrow(() -> new NotFoundException("Film not found"));
+        return FilmDtoMapper.mapToFilmDto(film);
     }
 
     private void validateFilmAndUserId(Integer filmId, Integer userId) {

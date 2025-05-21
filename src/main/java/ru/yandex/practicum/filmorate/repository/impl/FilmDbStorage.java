@@ -2,6 +2,7 @@ package ru.yandex.practicum.filmorate.repository.impl;
 
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
@@ -165,13 +166,24 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
     // Получение фильма по id ––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
     @Override
     public Optional<Film> getById(Integer id) {
-        FilmDto filmDto = jdbcTemplate.queryForObject(GET_FILM_BY_ID_QUERY, new FilmRowMapper(), id);
+        try {
+            // 1. Получаем основную информацию о фильме
+            FilmDto filmDto = jdbcTemplate.queryForObject(
+                    GET_FILM_BY_ID_QUERY,
+                    new FilmRowMapper(),
+                    id
+            );
 
-        if (filmDto != null) {
-            addGenresAndLikesToFilm(filmDto);
-            return Optional.of(FilmMapper.mapToFilm(filmDto));
+            // 2. Если фильм найден, дополняем его данными
+            if (filmDto != null) {
+                addGenresAndLikesToFilm(filmDto);
+                return Optional.of(FilmMapper.mapToFilm(filmDto));
+            }
+            return Optional.empty();
+        } catch (EmptyResultDataAccessException e) {
+            // 3. Обрабатываем случай, когда фильм не найден
+            return Optional.empty();
         }
-        return Optional.empty();
     }
 
     // Добавление лайка фильму –––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
