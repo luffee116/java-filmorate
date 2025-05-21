@@ -16,7 +16,6 @@ import ru.yandex.practicum.filmorate.repository.impl.FilmDbStorage;
 import ru.yandex.practicum.filmorate.repository.impl.UserDbStorage;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class FilmService {
