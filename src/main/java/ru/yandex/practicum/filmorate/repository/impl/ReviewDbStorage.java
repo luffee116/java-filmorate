@@ -75,7 +75,7 @@ public class ReviewDbStorage extends BaseDbStorage implements ReviewStorage {
             return ps;
         }, keyHolder);
 
-        Integer reviewId = keyHolder.getKeyAs(Integer.class);
+        Integer reviewId = keyHolder.getKey().intValue();
         review.setId(reviewId);
         log.info("Review created: {}", reviewId);
         return review;
