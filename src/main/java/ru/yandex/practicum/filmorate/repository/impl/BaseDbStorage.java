@@ -17,6 +17,7 @@ public class BaseDbStorage {
     private static final String CHECK_FILM_EXIST_BY_ID_QUERY = "SELECT COUNT(*) FROM films WHERE id = ?; ";
     private static final String CHECK_GENRE_EXIST_BY_ID_QUERY = "SELECT COUNT(*) FROM genres WHERE genre_id = ?; ";
     private static final String CHECK_RATING_EXIST_BY_ID_QUERY = "SELECT COUNT(*) FROM mpa_rating WHERE id = ?; ";
+    private static final String CHECK_REVIEW_EXIST_BY_ID_QUERY = "SELECT COUNT(*) FROM reviews WHERE review_id = ?; ";
 
     protected void checkEntityExist(Integer id, TypeEntity typeEntity) {
         String sql = getQuery(typeEntity);
@@ -36,6 +37,7 @@ public class BaseDbStorage {
             case FILM -> CHECK_FILM_EXIST_BY_ID_QUERY;
             case RATING -> CHECK_RATING_EXIST_BY_ID_QUERY;
             case USER -> CHECK_USER_EXIST_BY_ID_QUERY;
+            case REVIEW -> CHECK_REVIEW_EXIST_BY_ID_QUERY;
         };
     }
 }

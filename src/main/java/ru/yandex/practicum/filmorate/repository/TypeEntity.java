@@ -4,5 +4,6 @@ public enum TypeEntity {
     USER,
     FILM,
     GENRE,
-    RATING
+    RATING,
+    REVIEW
 }

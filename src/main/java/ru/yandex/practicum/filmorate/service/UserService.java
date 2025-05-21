@@ -29,11 +29,15 @@ public class UserService {
 
     public UserDto getUserById(Integer id) {
         log.info("Получение информации о пользователе с id {}", id);
-        Optional<User> responseUser = userStorage.getUserById(id);
-        if (responseUser.isEmpty()) {
-            throw new UserNotFoundException(String.format("Пользователь с id %s не найден", id));
+        if (id > 0) {
+            Optional<User> responseUser = userStorage.getUserById(id);
+            if (responseUser.isEmpty()) {
+                throw new UserNotFoundException(String.format("Пользователь с id %s не найден", id));
+            }
+            return UserDtoMapper.mapToUserDto(responseUser.get());
+        } else {
+            throw new UserNotFoundException(String.format("Пользователь с id %s недопустим или не найден", id));
         }
-        return UserDtoMapper.mapToUserDto(responseUser.get());
     }
 
     public UserDto addUser(UserDto user) {
@@ -71,7 +75,7 @@ public class UserService {
     }
 
     public List<UserDto> getUserFriends(Integer userId) {
-        List<User> users =  userStorage.getUserFriends(userId)
+        List<User> users = userStorage.getUserFriends(userId)
                 .orElseThrow(() -> new NotFoundException("Пользователь не найден"));
         return users.stream().map(UserDtoMapper::mapToUserDto).toList();
     }
