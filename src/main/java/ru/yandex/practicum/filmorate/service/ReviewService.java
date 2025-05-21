@@ -51,7 +51,7 @@ public class ReviewService {
         checkUserAndFilmExist(reviewDto.getUserId(), reviewDto.getFilmId());
         Review request = ReviewMapper.mapToReview(reviewDto);
         Review review = reviewStorage.save(request);
-        return ReviewDtoMapper.MapToDto(review);
+        return ReviewDtoMapper.mapToDto(review);
     }
 
     /**
@@ -63,7 +63,7 @@ public class ReviewService {
         checkReviewExist(reviewDto.getId());
         Review request = ReviewMapper.mapToReview(reviewDto);
         Review review = reviewStorage.update(request);
-        return ReviewDtoMapper.MapToDto(review);
+        return ReviewDtoMapper.mapToDto(review);
     }
 
     /**
@@ -83,7 +83,7 @@ public class ReviewService {
      */
     public Optional<ReviewDto> getReviewById(Integer id) {
         Optional<Review> review = reviewStorage.getReviewById(id);
-        return Optional.of(ReviewDtoMapper.MapToDto(review.get()));
+        return Optional.of(ReviewDtoMapper.mapToDto(review.get()));
     }
 
     /**
@@ -95,10 +95,10 @@ public class ReviewService {
     public List<ReviewDto> getReviews(Integer filmId, Integer count) {
         if (filmId != null) {
             List<Review> response = reviewStorage.getReviewsById(filmId, count);
-            return response.stream().map(ReviewDtoMapper::MapToDto).collect(Collectors.toList());
+            return response.stream().map(ReviewDtoMapper::mapToDto).collect(Collectors.toList());
         } else {
             List<Review> getAllList = reviewStorage.getAll(count);
-            return getAllList.stream().map(ReviewDtoMapper::MapToDto).collect(Collectors.toList());
+            return getAllList.stream().map(ReviewDtoMapper::mapToDto).collect(Collectors.toList());
         }
     }
 
