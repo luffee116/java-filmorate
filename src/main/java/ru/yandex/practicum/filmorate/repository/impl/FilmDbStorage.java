@@ -2,6 +2,7 @@ package ru.yandex.practicum.filmorate.repository.impl;
 
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataAccessException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
@@ -247,7 +248,12 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
     @Override
     public boolean existsById(Integer id) {
         String sql = "SELECT EXISTS(SELECT 1 FROM films WHERE id = ?)";
-        return Boolean.TRUE.equals(jdbcTemplate.queryForObject(sql, Boolean.class, id));
+        try {
+            return Boolean.TRUE.equals(jdbcTemplate.queryForObject(sql, Boolean.class, id));
+        } catch (DataAccessException e) {
+            log.error("Проверка ошибки существование пленки с идентификатором: {}", id, e);
+            return false;
+        }
     }
 
     // ВСПОМОГАТЕЛЬНЫЕ МЕТОДЫ ––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––

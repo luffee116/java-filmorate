@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.dto.FilmDto;
+import ru.yandex.practicum.filmorate.exeptions.FilmUpdateException;
 import ru.yandex.practicum.filmorate.exeptions.NotFoundException;
 import ru.yandex.practicum.filmorate.exeptions.LikeException;
 import ru.yandex.practicum.filmorate.mapper.dto.FilmDtoMapper;
@@ -37,14 +38,17 @@ public class FilmService {
         return FilmDtoMapper.mapToFilmDto(film);
     }
 
-    public FilmDto update(FilmDto requestFilm) {
-        Optional<Film> filmToUpdate = filmStorage.getById(requestFilm.getId());
-        if (filmToUpdate.isPresent()) {
-            Film film = filmStorage.update(FilmMapper.updateFilm(requestFilm, filmToUpdate.get()));
-            log.info("Обновлен фильм фильм с id: {}", requestFilm.getId());
-            return FilmDtoMapper.mapToFilmDto(film);
+    @Transactional
+    public FilmDto update(FilmDto filmDto) {
+        // 1. Проверяем существование фильма
+        if (!filmStorage.existsById(filmDto.getId())) {
+            throw new FilmUpdateException("Cannot update non-existent film with id=" + filmDto.getId());
         }
-        return null;
+
+        // 2. Обновляем фильм
+        Film film = FilmMapper.mapToFilm(filmDto);
+        Film updatedFilm = filmStorage.update(film);
+        return FilmDtoMapper.mapToFilmDto(updatedFilm);
     }
 
     public List<FilmDto> getAll() {
