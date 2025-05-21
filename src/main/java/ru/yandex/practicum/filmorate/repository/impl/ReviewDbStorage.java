@@ -36,8 +36,8 @@ public class ReviewDbStorage extends BaseDbStorage implements ReviewStorage {
             """;
     private static final String GET_REVIEWS_BY_FILM_ID_QUERY = """
             SELECT * FROM reviews
-            WHERE film_id = ? 
-            ORDER BY useful DESC 
+            WHERE film_id = ?
+            ORDER BY useful DESC
             LIMIT ?;
             """;
     private static final String GET_ALL_REVIEWS_QUERY = """
@@ -75,7 +75,7 @@ public class ReviewDbStorage extends BaseDbStorage implements ReviewStorage {
             return ps;
         }, keyHolder);
 
-        Integer reviewId = keyHolder.getKey().intValue();
+        Integer reviewId = keyHolder.getKeyAs(Integer.class);
         review.setId(reviewId);
         log.info("Review created: {}", reviewId);
         return review;
@@ -133,16 +133,16 @@ public class ReviewDbStorage extends BaseDbStorage implements ReviewStorage {
     /**
      * Получения списка отзывов из БД
      *
-     * @param film_id идентификатор фильма, по которому необходимо получить отзывы
+     * @param filmId идентификатор фильма, по которому необходимо получить отзывы
      * @param count   количество выводимых отзывов (Необязателен, в таком случае default = 10)
      */
     @Override
-    public List<Review> getReviewsById(Integer film_id, Integer count) {
+    public List<Review> getReviewsById(Integer filmId, Integer count) {
         if (count == null) {
             count = 10; // Установка базового значения
         }
-        log.info("Get reviews by id: {}", film_id);
-        return jdbcTemplate.query(GET_REVIEWS_BY_FILM_ID_QUERY, new ReviewRowMapper(), film_id, count);
+        log.info("Get reviews by id: {}", filmId);
+        return jdbcTemplate.query(GET_REVIEWS_BY_FILM_ID_QUERY, new ReviewRowMapper(), filmId, count);
     }
 
     /**
