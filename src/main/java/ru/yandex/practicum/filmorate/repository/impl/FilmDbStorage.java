@@ -17,7 +17,6 @@ import ru.yandex.practicum.filmorate.rowMappers.GenreDtoRowMapper;
 
 import java.sql.Date;
 import java.sql.PreparedStatement;
-
 import java.util.*;
 
 @Repository
@@ -91,6 +90,15 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
             """;
     private static final String DELETE_FILM_GENRES_BY_ID = """
             DELETE FROM film_genres WHERE film_id = ?;
+            """;
+    private static final String GET_COMMON_FILMS = """
+            SELECT f.*
+            FROM films f
+            JOIN film_likes fl1 ON f.id = fl1.film_id
+            JOIN film_likes fl2 ON f.id = fl2.film_id
+            WHERE fl1.user_id = ? AND fl2.user_id = ?
+            GROUP BY f.id
+            ORDER BY (SELECT COUNT(*) FROM film_likes fl WHERE fl.film_id = f.id) DESC
             """;
 
     public FilmDbStorage(JdbcTemplate jdbcTemplate) {
@@ -198,34 +206,52 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
         return filmsToResponse.stream().map(FilmMapper::mapToFilm).toList();
     }
 
+    /**
+     * Получает список фильмов, которые понравились как указанному пользователю, так и его другу.
+     * Использует SQL-запрос для извлечения общих фильмов, затем обогащает их жанрами и лайками.
+     *
+     * @param userId   идентификатор пользователя.
+     * @param friendId идентификатор друга пользователя.
+     * @return список фильмов, понравившихся обоим пользователям.
+     */
+    public List<Film> getCommonFilms(Integer userId, Integer friendId) {
+        Map<Integer, List<Integer>> likes = setUpLikes();
+        Map<Integer, List<GenreDto>> genres = setUpGenres();
+
+        List<FilmDto> films = jdbcTemplate.query(GET_COMMON_FILMS, new FilmRowMapper(), userId, friendId);
+        List<FilmDto> filmsToResponse = addGenresAndLikesToFilmList(films, likes, genres);
+
+        return filmsToResponse.stream().map(FilmMapper::mapToFilm).toList();
+    }
 
     // ВСПОМОГАТЕЛЬНЫЕ МЕТОДЫ ––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
     // Добавление жанров
+
     private void addFilmGenres(Set<Genre> genresSet, int id) {
         if (genresSet != null && !genresSet.isEmpty()) {
             genresSet.forEach(this::checkGenre);
             genresSet.forEach(genre -> jdbcTemplate.update(ADD_FILM_GENRES_QUERY, id, genre.getId()));
         }
     }
-
     // Получение жанров фильма –––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
+
     private Set<GenreDto> loadGenresForFilm(Integer id) {
         return new HashSet<>(jdbcTemplate.query(GET_GENRES_ID_FOR_FILM_ID_QUERY, new GenreDtoRowMapper(), id));
     }
-
     // Получение лайков фильма –––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
+
     private Set<Integer> loadLikesForFilm(Integer id) {
         return new HashSet<>(jdbcTemplate.queryForList(GET_LIKES_BY_FILM_ID_QUERY, Integer.class, id));
     }
-
     // Преобразование ––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
+
     private void addGenresAndLikesToFilm(FilmDto filmDto) {
         Integer filmId = filmDto.getId();
         filmDto.setGenres(loadGenresForFilm(filmId));
         filmDto.setLikes(loadLikesForFilm(filmId));
     }
-
     //Наполнение фильма
+
     private List<FilmDto> addGenresAndLikesToFilmList(List<FilmDto> films,
                                                       Map<Integer, List<Integer>> likes,
                                                       Map<Integer, List<GenreDto>> genres) {
@@ -236,18 +262,18 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
 
         return films;
     }
-
     // Проверка существования фильма
+
     private void checkFilm(Film film) {
         checkEntityExist(film.getId(), TypeEntity.FILM);
     }
-
     // Проверка существования жанра
+
     private void checkGenre(Genre genre) {
         checkEntityExist(genre.getId(), TypeEntity.GENRE);
     }
-
     // Проверка существования рейтинга
+
     private void checkMpaRating(Film film) {
         checkEntityExist(film.getMpa().getId(), TypeEntity.RATING);
     }

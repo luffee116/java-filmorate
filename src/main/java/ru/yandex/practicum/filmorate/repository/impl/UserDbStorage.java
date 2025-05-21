@@ -1,6 +1,7 @@
 package ru.yandex.practicum.filmorate.repository.impl;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
@@ -8,10 +9,10 @@ import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.dto.UserDto;
 import ru.yandex.practicum.filmorate.exeptions.ValidationException;
 import ru.yandex.practicum.filmorate.mapper.toEntity.UserMapper;
-import ru.yandex.practicum.filmorate.repository.TypeEntity;
-import ru.yandex.practicum.filmorate.rowMappers.UserRowMapper;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.repository.TypeEntity;
 import ru.yandex.practicum.filmorate.repository.UserStorage;
+import ru.yandex.practicum.filmorate.rowMappers.UserRowMapper;
 
 import java.sql.Date;
 import java.sql.PreparedStatement;
@@ -68,6 +69,11 @@ public class UserDbStorage extends BaseDbStorage implements UserStorage {
             JOIN user_friends uf ON u.id = uf.friend_id
             WHERE uf.user_id = ?;
             """;
+    private static final String CHECK_EXIST_FRIENDSHIP = """
+            SELECT COUNT(*)
+            FROM user_friends
+            WHERE user_id = ? AND friend_id = ?
+            """;
 
     public UserDbStorage(JdbcTemplate jdbcTemplate) {
         super(jdbcTemplate);
@@ -88,14 +94,15 @@ public class UserDbStorage extends BaseDbStorage implements UserStorage {
     public Optional<User> getUserById(Integer id) {
         Objects.requireNonNull(id, "Id не может быть null");
 
-        UserDto userDto = jdbcTemplate.queryForObject(GET_USER_BY_ID_QUERY, userRowMapper, id);
-
-        if (userDto != null) {
+        try {
+            UserDto userDto = jdbcTemplate.queryForObject(GET_USER_BY_ID_QUERY, userRowMapper, id);
             loadFriends(id);
             return Optional.of(UserMapper.mapToUser(userDto));
+        } catch (EmptyResultDataAccessException e) {
+            return Optional.empty();
         }
-        return Optional.empty();
     }
+
 
     // Добавление пользователя –––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
     @Override
@@ -194,6 +201,20 @@ public class UserDbStorage extends BaseDbStorage implements UserStorage {
                 .toList());
     }
 
+    /**
+     * Проверяет, является ли указанный пользователь другом другого пользователя.
+     *
+     * Выполняет запрос к базе данных для проверки существования записи о дружбе
+     * между {@code userId} и {@code friendId}.
+     *
+     * @param userId   идентификатор пользователя.
+     * @param friendId идентификатор предполагаемого друга.
+     * @return {@code true}, если существует дружба между пользователями, иначе {@code false}.
+     */
+    public boolean areFriends(Integer userId, Integer friendId) {
+        Integer count = jdbcTemplate.queryForObject(CHECK_EXIST_FRIENDSHIP, Integer.class, userId, friendId);
+        return count != null && count > 0;
+    }
     // ВСПОМОГАТЕЛЬНЫЙ МЕТОДЫ
 
     // Проверка существования пользователя –––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
@@ -220,6 +241,7 @@ public class UserDbStorage extends BaseDbStorage implements UserStorage {
     }
 
     // Преобразование со списком друзей ––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
+
     private void addFriendsToUserResponse(UserDto userDto) {
         Integer userId = userDto.getId();
         userDto.setFriendsId(loadFriends(userId));
