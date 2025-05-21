@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.repository.impl;
 
+import jakarta.persistence.criteria.CriteriaBuilder;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
@@ -144,6 +145,15 @@ public class ReviewDbStorage extends BaseDbStorage implements ReviewStorage {
             return Optional.empty();
         }
         return Optional.of(review);
+    }
+
+    @Override
+    public Integer getUserIdByReviewId(Integer reviewId) {
+        checkEntityExist(reviewId, TypeEntity.REVIEW);
+        Review review = jdbcTemplate.queryForObject(GET_REVIEW_BY_ID_QUERY, new ReviewRowMapper(), reviewId);
+
+        int userId = review.getUserId();
+        return userId;
     }
 
     /**

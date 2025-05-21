@@ -13,6 +13,7 @@ import ru.yandex.practicum.filmorate.dto.FilmDto;
 import ru.yandex.practicum.filmorate.dto.MpaDto;
 import ru.yandex.practicum.filmorate.repository.impl.*;
 import ru.yandex.practicum.filmorate.service.FilmService;
+import ru.yandex.practicum.filmorate.service.UserFeedService;
 
 import java.time.LocalDate;
 import java.util.Collection;
@@ -40,7 +41,9 @@ public class FilmControllerTest {
 
         UserDbStorage userDbStorage = new UserDbStorage(jdbcTemplate);
         FilmDbStorage filmDbStorage = new FilmDbStorage(jdbcTemplate);
-        FilmService filmService = new FilmService(filmDbStorage, userDbStorage);
+        UserFeedDbStorage feedDbStorage = new UserFeedDbStorage(jdbcTemplate);
+        UserFeedService feedService = new UserFeedService(feedDbStorage);
+        FilmService filmService = new FilmService(filmDbStorage, userDbStorage, feedService);
 
         film = new FilmDto();
         film.setId(1);

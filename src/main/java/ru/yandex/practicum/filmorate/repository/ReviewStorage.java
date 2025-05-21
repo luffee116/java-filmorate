@@ -17,6 +17,8 @@ public interface ReviewStorage {
 
     List<Review> getReviewsById(Integer filmId, Integer count);
 
+    Integer getUserIdByReviewId(Integer reviewId);
+
     List<Review> getAll(Integer count);
 
     void incrementUseful(Integer reviewId);

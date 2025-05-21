@@ -20,6 +20,7 @@ import java.util.Optional;
 @Slf4j
 public class UserService {
     private final UserDbStorage userStorage;
+    private final UserFeedService userFeedService;
 
     public List<UserDto> getAll() {
         log.info("Отправлен список всех пользователей, size:{}", userStorage.getAll().size());
@@ -59,12 +60,14 @@ public class UserService {
     public void addFriend(Integer firstId, Integer secondId) {
         userStorage.addFriend(firstId, secondId)
                 .orElseThrow(() -> new FriendshipException("Ошибка при добавлении в друзья"));
+        userFeedService.createEvent(firstId, "FRIEND", "ADD", secondId);
         log.info("Добавлена дружба между пользователями с id {} и {}", firstId, secondId);
     }
 
     public void removeFriend(Integer firstId, Integer secondId) {
         userStorage.removeFriend(firstId, secondId)
                 .orElseThrow(() -> new FriendshipException("Ошибка при удалении друзей"));
+        userFeedService.createEvent(firstId, "FRIEND", "REMOVE", secondId);
         log.info("Дружба удалена между пользователями с id {} и {}", firstId, secondId);
     }
 
@@ -80,4 +83,3 @@ public class UserService {
         return users.stream().map(UserDtoMapper::mapToUserDto).toList();
     }
 }
-

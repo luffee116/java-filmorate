@@ -6,6 +6,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.dto.UserDto;
+import ru.yandex.practicum.filmorate.model.UserFeedEvent;
+import ru.yandex.practicum.filmorate.service.UserFeedService;
 import ru.yandex.practicum.filmorate.service.UserService;
 
 import java.util.List;
@@ -17,6 +19,7 @@ import java.util.List;
 @RequestMapping("/users")
 public class UserController {
     UserService userService;
+    UserFeedService feedService;
 
     @GetMapping
     public List<UserDto> getAll() {
@@ -61,5 +64,11 @@ public class UserController {
     @GetMapping("/{userId}/friends")
     public List<UserDto> getUserFriends(@PathVariable Integer userId) {
         return userService.getUserFriends(userId);
+    }
+
+
+    @GetMapping("/{userId}/feed")
+    public List<UserFeedEvent> getUserFeed(@PathVariable Integer userId) {
+        return feedService.getFeedByUserId(userId);
     }
 }
