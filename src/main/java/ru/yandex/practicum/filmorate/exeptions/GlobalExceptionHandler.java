@@ -16,8 +16,6 @@ public class GlobalExceptionHandler {
         return new ErrorResponse(e.getMessage());
     }
 
-    // Можно добавить другие обработчики...
-    
     @Data
     @AllArgsConstructor
     private static class ErrorResponse {
