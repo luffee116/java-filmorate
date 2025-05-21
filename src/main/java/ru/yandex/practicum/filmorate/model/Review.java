@@ -28,7 +28,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Review {
-    private Integer id;
+    private Integer reviewId;
     private String content;
     private Boolean isPositive;
     private Integer userId;

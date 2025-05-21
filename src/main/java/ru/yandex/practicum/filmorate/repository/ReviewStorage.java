@@ -23,4 +23,8 @@ public interface ReviewStorage {
 
     void decrementUseful(Integer reviewId);
 
+    boolean existsByUserIdAndFilmId(Integer userId, Integer filmId);
+
+    Integer getLastReviewId();
+
 }

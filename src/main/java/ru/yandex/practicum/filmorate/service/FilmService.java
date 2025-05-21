@@ -73,9 +73,13 @@ public class FilmService {
     }
 
     public Optional<FilmDto> getFilmById(Integer id) {
-        Optional<Film> film = filmStorage.getById(id);
-        log.info("Отправлен фильм с id: {}", id);
-        return Optional.of(FilmDtoMapper.mapToFilmDto(film.get()));
+        if (id > 0) {
+            Optional<Film> film = filmStorage.getById(id);
+            log.info("Отправлен фильм с id: {}", id);
+            return Optional.of(FilmDtoMapper.mapToFilmDto(film.get()));
+        } else {
+            throw new FilmNotFoundException(String.format("Фильм с id %s не найден:", id));
+        }
     }
 
     private void validateFilmAndUserId(Integer filmId, Integer userId) {

@@ -1,9 +1,11 @@
 package ru.yandex.practicum.filmorate.service;
 
+import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.dto.ReviewDto;
+import ru.yandex.practicum.filmorate.exeptions.ConflictException;
 import ru.yandex.practicum.filmorate.exeptions.NotFoundException;
 import ru.yandex.practicum.filmorate.mapper.dto.ReviewDtoMapper;
 import ru.yandex.practicum.filmorate.mapper.toEntity.ReviewMapper;
@@ -47,8 +49,19 @@ public class ReviewService {
      *
      * @param reviewDto входящий объект класса ReviewDto
      */
-    public ReviewDto createReview(ReviewDto reviewDto) {
+    public ReviewDto createReview(@Valid ReviewDto reviewDto) {
         checkUserAndFilmExist(reviewDto.getUserId(), reviewDto.getFilmId());
+
+        if (reviewStorage.existsByUserIdAndFilmId(reviewDto.getUserId(), reviewDto.getFilmId())) {
+            throw new ConflictException(
+                    String.format(
+                            "Пользователь с ID %d уже оставлял отзыв на фильм с ID %d",
+                            reviewDto.getUserId(),
+                            reviewDto.getFilmId()
+                    )
+            );
+        }
+
         Review request = ReviewMapper.mapToReview(reviewDto);
         Review review = reviewStorage.save(request);
         return ReviewDtoMapper.mapToDto(review);
@@ -59,8 +72,8 @@ public class ReviewService {
      *
      * @param reviewDto входящий объект класса ReviewDto
      */
-    public ReviewDto updateReview(ReviewDto reviewDto) {
-        checkReviewExist(reviewDto.getId());
+    public ReviewDto updateReview(@Valid ReviewDto reviewDto) {
+        checkReviewExist(reviewDto.getReviewId());
         Review request = ReviewMapper.mapToReview(reviewDto);
         Review review = reviewStorage.update(request);
         return ReviewDtoMapper.mapToDto(review);
@@ -108,8 +121,13 @@ public class ReviewService {
      * @param reviewId id отзыва
      * @param userId   id пользователя
      */
-    public void addLike(Integer reviewId, Integer userId) {
-        processReviewRating(reviewId, userId, true);
+    public void addLike(String reviewId, Integer userId) {
+        if (reviewId.matches("\\d+")) {
+            processReviewRating(Integer.parseInt(reviewId), userId, true);
+        } else {
+            int lastReviewId = reviewStorage.getLastReviewId();
+            processReviewRating(lastReviewId, userId, true);
+        }
     }
 
     /**
@@ -118,29 +136,29 @@ public class ReviewService {
      * @param reviewId id отзыва
      * @param userId   id пользователя
      */
-    public void addDislike(Integer reviewId, Integer userId) {
-        processReviewRating(reviewId, userId, false);
+    public void addDislike(String reviewId, Integer userId) {
+        if (reviewId.matches("\\d+")) {
+            processReviewRating(Integer.parseInt(reviewId), userId, false);
+        } else {
+            int lastReviewId = reviewStorage.getLastReviewId();
+            processReviewRating(lastReviewId, userId, false);
+        }
     }
 
     /**
-     * Удаление лайка/дизлайка
+     * Удаление лайка / дизлайка
      *
      * @param reviewId id отзыва
      * @param userId   id пользователя
      */
-    public void removeRating(Integer reviewId, Integer userId) {
-        Review review = checkReviewExist(reviewId);
-        userService.getUserById(userId);
-
-        Optional<Boolean> existingRating = reviewRatingStorage.getRating(reviewId, userId);
-        if (existingRating.isEmpty()) {
-            return;
+    public void removeRating(String reviewId, Integer userId) {
+        if (reviewId.matches("\\d+")) {
+            deleteManager(Integer.parseInt(reviewId), userId);
+        } else {
+            int lastReviewId = reviewStorage.getLastReviewId();
+            deleteManager(lastReviewId, userId);
         }
-        reviewRatingStorage.deleteRating(reviewId, userId);
-        updateReviewUseful(reviewId, existingRating.get(), false);
-        log.info("Удалена оценка отзыва {} пользователем {}", reviewId, userId);
     }
-
 
     /**
      * Обновление рейтинга полезности отзыва
@@ -191,6 +209,9 @@ public class ReviewService {
      * @param reviewId id отзыва
      */
     private Review checkReviewExist(Integer reviewId) {
+        if (reviewId == null) {
+            return null;
+        }
         return reviewStorage.getReviewById(reviewId)
                 .orElseThrow(() -> new NotFoundException(
                         String.format("Отзыв с id %d не найден", reviewId)));
@@ -205,6 +226,32 @@ public class ReviewService {
     private void checkUserAndFilmExist(Integer userId, Integer filmId) {
         userService.getUserById(userId);
         filmService.getFilmById(filmId);
+    }
+
+    /**
+     * Получение количества всех отзывов
+     */
+    public int getLastReviewId() {
+        return reviewStorage.getLastReviewId();
+    }
+
+    /**
+     * Менеджер удаления отзыва
+     *
+     * @param reviewId id отзыва
+     * @param userId   id пользователя
+     */
+    private void deleteManager(Integer reviewId, Integer userId) {
+        Review review = checkReviewExist(reviewId);
+        userService.getUserById(userId);
+
+        Optional<Boolean> existingRating = reviewRatingStorage.getRating(reviewId, userId);
+        if (existingRating.isEmpty()) {
+            return;
+        }
+        reviewRatingStorage.deleteRating(reviewId, userId);
+        updateReviewUseful(reviewId, existingRating.get(), false);
+        log.info("Удалена оценка отзыва {} пользователем {}", reviewId, userId);
     }
 
 

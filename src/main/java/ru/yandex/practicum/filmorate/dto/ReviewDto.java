@@ -1,5 +1,7 @@
 package ru.yandex.practicum.filmorate.dto;
 
+import jakarta.validation.constraints.AssertTrue;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -31,18 +33,17 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class ReviewDto {
 
-    @NotBlank(message = "id не может быть пустой")
     @NotNull(message = "id не может быть null")
-    private Integer id;
+    private Integer reviewId;
 
     private String content;
 
     private Boolean isPositive;
 
-    @NotBlank(message = "userId не может быть пустой или null")
+    @NotNull(message = "userId не может быть null")
+    @Min(value = 1, message = "userId должен быть больше 1")
     private Integer userId;
 
-    @NotBlank(message = "filmId не может быть пустой")
     @NotNull(message = "filmId не может быть null")
     private Integer filmId;
 

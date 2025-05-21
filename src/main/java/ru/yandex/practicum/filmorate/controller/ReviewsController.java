@@ -42,8 +42,13 @@ public class ReviewsController {
      * @param id id отзыва в базе данных
      */
     @DeleteMapping("/{id}")
-    public void deleteReview(@PathVariable("id") Integer id) {
-        reviewService.deleteReview(id);
+    public void deleteReview(@PathVariable("id") String id) {
+        if (id.matches("\\d+")) {
+            reviewService.deleteReview(Integer.parseInt(id));
+        } else {
+            int lastId = reviewService.getLastReviewId();
+            reviewService.deleteReview(lastId);
+        }
     }
 
     /**
@@ -69,13 +74,24 @@ public class ReviewsController {
     }
 
     /**
+     * Получение списка отзывов (Обрабатывает явный запрос /null)
+     *
+     * @param count количество выводимых значений (По умолчанию 10)
+     */
+    @GetMapping("/null")
+    public List<ReviewDto> getReviewsWithNullFilmId(
+            @RequestParam(required = false, defaultValue = "10") Integer count) {
+        return reviewService.getReviews(null, count);  // filmId = null
+    }
+
+    /**
      * Добавление лайка
      *
      * @param id     id отзыва в базе данных
      * @param userId id пользователя в базе данных
      */
     @PutMapping("/{id}/like/{userId}")
-    public void addLike(@PathVariable("id") Integer id,
+    public void addLike(@PathVariable("id") String id,
                         @PathVariable("userId") Integer userId) {
         reviewService.addLike(id, userId);
     }
@@ -87,7 +103,7 @@ public class ReviewsController {
      * @param userId id пользователя в базе данных
      */
     @PutMapping("/{id}/dislike/{userId}")
-    public void addDislike(@PathVariable("id") Integer id,
+    public void addDislike(@PathVariable("id") String id,
                            @PathVariable("userId") Integer userId) {
         reviewService.addDislike(id, userId);
     }
@@ -99,7 +115,7 @@ public class ReviewsController {
      * @param userId id пользователя в базе данных
      */
     @DeleteMapping("/{id}/like/{userId}")
-    public void removeLike(@PathVariable("id") Integer id,
+    public void removeLike(@PathVariable("id") String id,
                            @PathVariable("userId") Integer userId) {
         reviewService.removeRating(id, userId);
     }
@@ -111,7 +127,7 @@ public class ReviewsController {
      * @param userId id пользователя в базе данных
      */
     @DeleteMapping("/{id}/dislike/{userId}")
-    public void removeDislike(@PathVariable("id") Integer id,
+    public void removeDislike(@PathVariable("id") String id,
                               @PathVariable("userId") Integer userId) {
         reviewService.removeRating(id, userId);
     }

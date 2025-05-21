@@ -6,7 +6,7 @@ import ru.yandex.practicum.filmorate.model.Review;
 public final class ReviewDtoMapper {
     public static ReviewDto mapToDto(final Review review) {
         return new ReviewDto().toBuilder()
-                .id(review.getId())
+                .reviewId(review.getReviewId())
                 .content(review.getContent())
                 .userId(review.getUserId())
                 .filmId(review.getFilmId())
