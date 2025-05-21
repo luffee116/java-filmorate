@@ -205,13 +205,14 @@ public class UserDbStorage extends BaseDbStorage implements UserStorage {
     @Override
     @Transactional
     public void delete(Integer id) {
-        checkEntityExist(id, TypeEntity.USER);
+        // Проверяем существование пользователя
+        if (!existsById(id)) {
+            throw new NotFoundException("Пользователь с id=" + id + " не найден");
+        }
 
-        // Удаляем дружеские связи
-        jdbcTemplate.update("DELETE FROM user_friends WHERE user_id = ? OR friend_id = ?", id, id);
-
-        // Удаляем лайки пользователя
+        // Удаляем связанные данные (лайки и дружеские связи)
         jdbcTemplate.update("DELETE FROM film_likes WHERE user_id = ?", id);
+        jdbcTemplate.update("DELETE FROM user_friends WHERE user_id = ? OR friend_id = ?", id, id);
 
         // Удаляем пользователя
         jdbcTemplate.update("DELETE FROM users WHERE id = ?", id);
