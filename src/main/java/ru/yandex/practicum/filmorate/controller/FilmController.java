@@ -9,7 +9,8 @@ import ru.yandex.practicum.filmorate.dto.FilmDto;
 import ru.yandex.practicum.filmorate.exeptions.NotFoundException;
 import ru.yandex.practicum.filmorate.service.FilmService;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
 
 @Validated
 @AllArgsConstructor
@@ -58,5 +59,20 @@ public class FilmController {
     @GetMapping("/popular")
     public List<FilmDto> getPopularFilm(@RequestParam(name = "count", required = false, defaultValue = "10") int count) {
         return filmService.getPopularFilm(count);
+    }
+
+    /**
+     * Возвращает список фильмов, которые понравились обоим пользователям — указанному пользователю и его другу.
+     * Список отсортирован по убыванию популярности (количеству лайков).
+     *
+     * @param userId   идентификатор пользователя.
+     * @param friendId идентификатор друга пользователя.
+     * @return список DTO фильмов, которые оба пользователя отметили как понравившиеся,
+     * отсортированных по популярности.
+     */
+    @GetMapping("/common")
+    public List<FilmDto> getCommonFilms(@RequestParam Integer userId,
+                                        @RequestParam Integer friendId) {
+        return filmService.getCommonFilms(userId, friendId);
     }
 }
