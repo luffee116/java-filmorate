@@ -6,6 +6,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.dto.UserDto;
+import ru.yandex.practicum.filmorate.exeptions.NotFoundException;
 import ru.yandex.practicum.filmorate.service.UserService;
 
 import java.util.List;
@@ -32,6 +33,11 @@ public class UserController {
     @PutMapping
     public UserDto updateUser(@Valid @RequestBody UserDto requestUser) {
         return userService.updateUser(requestUser);
+    }
+
+    @GetMapping("/{id}")
+    public UserDto getUserById(@PathVariable Integer id) {
+        return userService.getUserById(id); // Теперь метод возвращает UserDto напрямую
     }
 
     @PutMapping("/{userId}/friends/{friendId}")

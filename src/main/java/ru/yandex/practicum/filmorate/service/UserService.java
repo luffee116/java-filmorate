@@ -29,12 +29,10 @@ public class UserService {
     }
 
     public UserDto getUserById(Integer id) {
-        log.info("Получение информации о пользователе с id {}", id);
-        Optional<User> responseUser = userStorage.getUserById(id);
-        if (responseUser.isEmpty()) {
-            throw new NotFoundException(String.format("Пользователь с id %s не найден", id));
-        }
-        return UserDtoMapper.mapToUserDto(responseUser.get());
+        // Получаем Optional<User> из хранилища
+        return userStorage.getUserById(id)
+                .map(UserDtoMapper::mapToUserDto) // Преобразуем в UserDto
+                .orElseThrow(() -> new NotFoundException("User with id=" + id + " not found"));
     }
 
     public UserDto addUser(UserDto user) {

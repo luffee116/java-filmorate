@@ -73,7 +73,8 @@ public class FilmService {
 
     public Optional<FilmDto> getFilmById(Integer id) {
         Optional<Film> film = filmStorage.getById(id);
-        return film.map(FilmDtoMapper::mapToFilmDto);
+        log.info("Отправлен фильм с id: {}", id);
+        return Optional.of(FilmDtoMapper.mapToFilmDto(film.get()));
     }
 
     private void validateFilmAndUserId(Integer filmId, Integer userId) {

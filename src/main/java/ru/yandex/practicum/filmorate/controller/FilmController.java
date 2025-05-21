@@ -25,7 +25,8 @@ public class FilmController {
 
     @GetMapping("/{id}")
     public FilmDto getFilmById(@PathVariable Integer id) {
-        return filmService.getFilmById(id).orElseThrow(() -> new NotFoundException("Not Found"));
+        return filmService.getFilmById(id)
+                .orElseThrow(() -> new NotFoundException("Film with id=" + id + " not found"));
     }
 
     @PostMapping
