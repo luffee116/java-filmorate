@@ -14,7 +14,7 @@ public class UserFeedService {
 
     private final UserFeedDbStorage userFeedRepository;
 
-    public void createEvent(int userId, String eventType, String operation, int entityId) {
+    public void createEvent(Integer userId, String eventType, String operation, int entityId) {
         UserFeedEvent event = UserFeedEvent.builder()
                 .timestamp(Instant.now().toEpochMilli())
                 .userId(userId)

@@ -24,17 +24,15 @@ import java.util.Optional;
 public class FilmService {
     private final FilmDbStorage filmStorage;
     private final UserDbStorage userStorage;
-    private final UserFeedDbStorage userFeedStorage;
-    private UserFeedService userFeedService;
+    private final UserFeedService userFeedService;
 
     private static final Logger log = LoggerFactory.getLogger(FilmService.class);
 
     @Autowired
-    public FilmService(FilmDbStorage filmStorage, UserDbStorage userStorage, UserFeedDbStorage userFeedStorage) {
+    public FilmService(FilmDbStorage filmStorage, UserDbStorage userStorage, UserFeedService userFeedService) {
         this.filmStorage = filmStorage;
         this.userStorage = userStorage;
-        this.userFeedStorage = userFeedStorage;
-        userFeedService = new UserFeedService(userFeedStorage);
+        this.userFeedService = userFeedService;
     }
 
     public FilmDto create(FilmDto requestFilm) {

@@ -10,11 +10,11 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class EventDto {
-    private long timestamp;
+    private Long timestamp;
     private int userId;
     private String eventType;     // Тип события: LIKE, REVIEW, FRIEND
     private String operation;     // Операция: REMOVE, ADD, UPDATE
-    private int eventId;
+    private Long eventId;
     private int entityId;         // ID связанной сущности
 
 }

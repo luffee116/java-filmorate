@@ -11,10 +11,10 @@ public final class EventDtoMapper {
         }
         return EventDto.builder()
                 .timestamp(event.getTimestamp())
-                .userId((int) event.getUserId())
+                .userId(event.getUserId())
                 .eventType(event.getEventType())
                 .operation(event.getOperation())
-                .eventId((int) event.getEventId())
+                .eventId( event.getEventId())
                 .entityId((int) event.getEntityId())
                 .build();
     }

@@ -10,7 +10,7 @@ public class UserFeedEventRowMapper implements RowMapper<UserFeedEvent> {
     @Override
     public UserFeedEvent mapRow(ResultSet rs, int rowNum) throws SQLException {
         return UserFeedEvent.builder()
-                .eventId(rs.getInt("event_id"))
+                .eventId(rs.getLong("event_id"))
                 .timestamp(rs.getLong("timestamp"))
                 .userId(rs.getInt("user_id"))
                 .eventType(rs.getString("event_type"))

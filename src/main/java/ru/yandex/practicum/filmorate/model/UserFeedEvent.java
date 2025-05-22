@@ -10,8 +10,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class UserFeedEvent {
-    private int eventId;
-    private long timestamp;
+    private Long eventId;
+    private Long timestamp;
     private int userId;
     private String eventType; // "LIKE", "REVIEW", "FRIEND"
     private String operation; // "REMOVE", "ADD", "UPDATE"

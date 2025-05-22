@@ -9,8 +9,7 @@ public final class EventMapper {
         if (eventDto == null) {
             return null;
         }
-        return new UserFeedEvent()
-                .toBuilder()
+        return UserFeedEvent.builder()
                 .timestamp(eventDto.getTimestamp())
                 .userId(eventDto.getUserId())
                 .eventType(eventDto.getEventType())

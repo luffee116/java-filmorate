@@ -34,6 +34,6 @@ public class UserFeedDbStorage implements UserFeedStorage {
 
     @Override
     public List<UserFeedEvent> getFeedByUserId(int userId) {
-        return jdbcTemplate.query(GET_FEED_BY_USER_ID_QUERY, (rs, rowNum) -> UserFeedEvent.builder().eventId(rs.getInt("event_id")).timestamp(rs.getLong("timestamp")).userId(rs.getInt("user_id")).eventType(rs.getString("event_type")).operation(rs.getString("operation")).entityId(rs.getInt("entity_id")).build(), userId);
+        return jdbcTemplate.query(GET_FEED_BY_USER_ID_QUERY, (rs, rowNum) -> UserFeedEvent.builder().eventId(rs.getLong("event_id")).timestamp(rs.getLong("timestamp")).userId(rs.getInt("user_id")).eventType(rs.getString("event_type")).operation(rs.getString("operation")).entityId(rs.getInt("entity_id")).build(), userId);
     }
 }
