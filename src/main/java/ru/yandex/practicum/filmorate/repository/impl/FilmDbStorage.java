@@ -105,6 +105,11 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
             GROUP BY f.id, m.id, m.name, m.description
             ORDER BY (SELECT COUNT(*) FROM film_likes fl WHERE fl.film_id = f.id) DESC
             """;
+    private static final String GET_LIKED_FILMS_BY_USER_ID_QUERY = """
+            SELECT film_id
+            FROM film_likes
+            WHERE user_id = ?;
+            """;
 
     public FilmDbStorage(JdbcTemplate jdbcTemplate) {
         super(jdbcTemplate);
@@ -282,7 +287,11 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
         return filmsToResponse.stream().map(FilmMapper::mapToFilm).toList();
     }
 
+    public Set<Integer> getLikedFilmsIds(Integer userId) {
+        return new HashSet<>(jdbcTemplate.queryForList(GET_LIKED_FILMS_BY_USER_ID_QUERY, Integer.class, userId));
+    }
     // ВСПОМОГАТЕЛЬНЫЕ МЕТОДЫ ––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
+
     // Добавление жанров
 
     private void addFilmGenres(Set<Genre> genresSet, int id) {
@@ -313,7 +322,6 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
     }
 
     //Наполнение фильма
-
     private List<FilmDto> addGenresAndLikesToFilmList(List<FilmDto> films,
                                                       Map<Integer, List<Integer>> likes,
                                                       Map<Integer, List<GenreDto>> genres) {
@@ -324,16 +332,17 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
 
         return films;
     }
-    // Проверка существования фильма
 
+    // Проверка существования фильма
     private void checkFilm(Film film) {
         checkEntityExist(film.getId(), TypeEntity.FILM);
     }
-    // Проверка существования жанра
 
+    // Проверка существования жанра
     private void checkGenre(Genre genre) {
         checkEntityExist(genre.getId(), TypeEntity.GENRE);
     }
+
     // Проверка существования рейтинга
 
     private void checkMpaRating(Film film) {
