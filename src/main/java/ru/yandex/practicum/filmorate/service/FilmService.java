@@ -15,6 +15,7 @@ import ru.yandex.practicum.filmorate.mapper.toEntity.FilmMapper;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.repository.impl.FilmDbStorage;
 import ru.yandex.practicum.filmorate.repository.impl.UserDbStorage;
+import ru.yandex.practicum.filmorate.repository.impl.UserFeedDbStorage;
 
 import java.util.List;
 import java.util.Optional;
@@ -23,15 +24,17 @@ import java.util.Optional;
 public class FilmService {
     private final FilmDbStorage filmStorage;
     private final UserDbStorage userStorage;
-    private final UserFeedService userFeedService;
+    private final UserFeedDbStorage userFeedStorage;
+    private UserFeedService userFeedService;
 
     private static final Logger log = LoggerFactory.getLogger(FilmService.class);
 
     @Autowired
-    public FilmService(FilmDbStorage filmStorage, UserDbStorage userStorage, UserFeedService userFeedService) {
+    public FilmService(FilmDbStorage filmStorage, UserDbStorage userStorage, UserFeedDbStorage userFeedStorage) {
         this.filmStorage = filmStorage;
         this.userStorage = userStorage;
-        this.userFeedService = userFeedService;
+        this.userFeedStorage = userFeedStorage;
+        userFeedService = new UserFeedService(userFeedStorage);
     }
 
     public FilmDto create(FilmDto requestFilm) {
