@@ -85,11 +85,11 @@ CREATE TABLE IF NOT EXISTS review_ratings
 );
 
 CREATE TABLE IF NOT EXISTS user_feed (
-       event_id BIGINT PRIMARY KEY AUTO_INCREMENT,
-       timestamp BIGINT NOT NULL,
-       user_id INT NOT NULL,
-       event_type ENUM('LIKE', 'REVIEW', 'FRIEND') NOT NULL,
-       operation ENUM('REMOVE', 'ADD', 'UPDATE') NOT NULL,
-       entity_id INT NOT NULL,
-       FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
-   );
+    event_id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    timestamp BIGINT NOT NULL,
+    user_id INT NOT NULL,
+    event_type VARCHAR(10) NOT NULL CHECK (event_type IN ('LIKE', 'REVIEW', 'FRIEND')),
+    operation VARCHAR(10) NOT NULL CHECK (operation IN ('REMOVE', 'ADD', 'UPDATE')),
+    entity_id INT NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
