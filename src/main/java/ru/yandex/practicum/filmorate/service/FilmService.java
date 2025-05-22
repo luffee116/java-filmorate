@@ -15,7 +15,6 @@ import ru.yandex.practicum.filmorate.mapper.toEntity.FilmMapper;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.repository.impl.FilmDbStorage;
 import ru.yandex.practicum.filmorate.repository.impl.UserDbStorage;
-import ru.yandex.practicum.filmorate.repository.impl.UserFeedDbStorage;
 
 import java.util.List;
 import java.util.Optional;
