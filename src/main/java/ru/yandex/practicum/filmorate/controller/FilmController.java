@@ -18,7 +18,6 @@ import java.util.*;
 @RequestMapping("/films")
 public class FilmController {
     FilmService filmService;
-    UserFeedService userFeedService;
 
     @GetMapping
     public Collection<FilmDto> getAll() {
