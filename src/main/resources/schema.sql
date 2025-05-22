@@ -88,8 +88,8 @@ CREATE TABLE IF NOT EXISTS user_feed (
     event_id BIGINT PRIMARY KEY AUTO_INCREMENT,
     timestamp BIGINT NOT NULL,
     user_id INT NOT NULL,
-    event_type VARCHAR(10) NOT NULL CHECK (event_type IN ('LIKE', 'REVIEW', 'FRIEND')),
-    operation VARCHAR(10) NOT NULL CHECK (operation IN ('REMOVE', 'ADD', 'UPDATE')),
+    event_type VARCHAR(10) NOT NULL,
+    operation VARCHAR(10) NOT NULL,
     entity_id INT NOT NULL,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
