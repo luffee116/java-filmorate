@@ -1,12 +1,16 @@
 package ru.yandex.practicum.filmorate.repository.impl;
 
+import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataAccessException;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.dto.FilmDto;
 import ru.yandex.practicum.filmorate.dto.GenreDto;
+import ru.yandex.practicum.filmorate.exeptions.NotFoundException;
 import ru.yandex.practicum.filmorate.mapper.toEntity.FilmMapper;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
@@ -163,13 +167,24 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
     // Получение фильма по id ––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
     @Override
     public Optional<Film> getById(Integer id) {
-        FilmDto filmDto = jdbcTemplate.queryForObject(GET_FILM_BY_ID_QUERY, new FilmRowMapper(), id);
+        try {
+            // 1. Получаем основную информацию о фильме
+            FilmDto filmDto = jdbcTemplate.queryForObject(
+                    GET_FILM_BY_ID_QUERY,
+                    new FilmRowMapper(),
+                    id
+            );
 
-        if (filmDto != null) {
-            addGenresAndLikesToFilm(filmDto);
-            return Optional.of(FilmMapper.mapToFilm(filmDto));
+            // 2. Если фильм найден, дополняем его данными
+            if (filmDto != null) {
+                addGenresAndLikesToFilm(filmDto);
+                return Optional.of(FilmMapper.mapToFilm(filmDto));
+            }
+            return Optional.empty();
+        } catch (EmptyResultDataAccessException e) {
+            // 3. Обрабатываем случай, когда фильм не найден
+            return Optional.empty();
         }
-        return Optional.empty();
     }
 
     // Добавление лайка фильму –––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
@@ -198,6 +213,48 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
         return filmsToResponse.stream().map(FilmMapper::mapToFilm).toList();
     }
 
+    /**
+     * Удаляет фильм по идентификатору.
+     *
+     * @param id идентификатор фильма
+     * @throws NotFoundException если фильм не найден
+     */
+    @Override
+    @Transactional
+    public void delete(Integer id) {
+        // Проверяем существование фильма
+        if (!existsById(id)) {
+            throw new NotFoundException("Фильм с id=" + id + " не найден");
+        }
+
+        // Удаляем связанные данные
+        jdbcTemplate.update("DELETE FROM film_likes WHERE film_id = ?", id);
+        jdbcTemplate.update("DELETE FROM film_genres WHERE film_id = ?", id);
+
+        // Удаляем фильм
+        jdbcTemplate.update("DELETE FROM films WHERE id = ?", id);
+    }
+
+    /**
+     * Проверяет существование фильма в базе данных по указанному идентификатору.
+     * <p>
+     * Метод выполняет оптимизированный запрос к базе данных, используя оператор EXISTS,
+     * который прекращает поиск после нахождения первой записи.
+     * </p>
+     *
+     * @param id идентификатор фильма для проверки (должен быть не null)
+     * @return true - если фильм с указанным ID существует, false - если не существует
+     */
+    @Override
+    public boolean existsById(Integer id) {
+        String sql = "SELECT EXISTS(SELECT 1 FROM films WHERE id = ?)";
+        try {
+            return Boolean.TRUE.equals(jdbcTemplate.queryForObject(sql, Boolean.class, id));
+        } catch (DataAccessException e) {
+            log.error("Проверка ошибки существование пленки с идентификатором: {}", id, e);
+            return false;
+        }
+    }
 
     // ВСПОМОГАТЕЛЬНЫЕ МЕТОДЫ ––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
     // Добавление жанров

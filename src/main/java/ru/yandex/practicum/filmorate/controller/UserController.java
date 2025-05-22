@@ -34,6 +34,11 @@ public class UserController {
         return userService.updateUser(requestUser);
     }
 
+    @GetMapping("/{id}")
+    public UserDto getUserById(@PathVariable Integer id) {
+        return userService.getUserById(id);
+    }
+
     @PutMapping("/{userId}/friends/{friendId}")
     public void addFriend(
             @PathVariable Integer userId,
@@ -61,5 +66,16 @@ public class UserController {
     @GetMapping("/{userId}/friends")
     public List<UserDto> getUserFriends(@PathVariable Integer userId) {
         return userService.getUserFriends(userId);
+    }
+
+    /**
+     * Удаляет пользователя по идентификатору.
+     *
+     * @param id идентификатор пользователя
+     */
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteUser(@PathVariable Integer id) {
+        userService.deleteUser(id);
     }
 }

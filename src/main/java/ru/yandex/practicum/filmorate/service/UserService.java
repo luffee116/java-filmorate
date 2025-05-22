@@ -1,12 +1,13 @@
 package ru.yandex.practicum.filmorate.service;
 
+import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.dto.UserDto;
 import ru.yandex.practicum.filmorate.exeptions.FriendshipException;
 import ru.yandex.practicum.filmorate.exeptions.NotFoundException;
-import ru.yandex.practicum.filmorate.exeptions.UserNotFoundException;
+
 import ru.yandex.practicum.filmorate.mapper.dto.UserDtoMapper;
 import ru.yandex.practicum.filmorate.mapper.toEntity.UserMapper;
 import ru.yandex.practicum.filmorate.model.User;
@@ -28,16 +29,9 @@ public class UserService {
     }
 
     public UserDto getUserById(Integer id) {
-        log.info("Получение информации о пользователе с id {}", id);
-        if (id > 0) {
-            Optional<User> responseUser = userStorage.getUserById(id);
-            if (responseUser.isEmpty()) {
-                throw new UserNotFoundException(String.format("Пользователь с id %s не найден", id));
-            }
-            return UserDtoMapper.mapToUserDto(responseUser.get());
-        } else {
-            throw new UserNotFoundException(String.format("Пользователь с id %s недопустим или не найден", id));
-        }
+        User user = userStorage.getUserById(id)
+                .orElseThrow(() -> new NotFoundException("User not found"));
+        return UserDtoMapper.mapToUserDto(user);
     }
 
     public UserDto addUser(UserDto user) {
@@ -50,7 +44,7 @@ public class UserService {
     public UserDto updateUser(UserDto user) {
         Optional<User> response = userStorage.updateUser(UserMapper.mapToUser(user));
         if (response.isEmpty()) {
-            throw new UserNotFoundException(String.format("Пользователь с id %s не найден", user.getId()));
+            throw new NotFoundException(String.format("Пользователь с id %s не найден", user.getId()));
         }
         log.info("Обновлен пользователь с id:{}", user.getId());
         return UserDtoMapper.mapToUserDto(response.get());
@@ -78,6 +72,20 @@ public class UserService {
         List<User> users = userStorage.getUserFriends(userId)
                 .orElseThrow(() -> new NotFoundException("Пользователь не найден"));
         return users.stream().map(UserDtoMapper::mapToUserDto).toList();
+    }
+
+    /**
+     * Удаляет пользователя из хранилища.
+     *
+     * @param id идентификатор пользователя
+     */
+    @Transactional
+    public void deleteUser(Integer id) {
+        if (!userStorage.existsById(id)) {
+            throw new NotFoundException("Пользователь с идентификатором не найден: " + id);
+        }
+        userStorage.delete(id);
+        log.info("Удален пользователя с помощью идентификатора: {}", id);
     }
 }
 

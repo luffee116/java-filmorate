@@ -20,4 +20,8 @@ public interface FilmStorage {
     Optional<Boolean> removeLike(Integer filmId, Integer userId);
 
     List<Film> getPopularFilm(Integer count);
+
+    void delete(Integer id);
+
+    boolean existsById(Integer id);
 }

@@ -6,7 +6,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.dto.FilmDto;
-import ru.yandex.practicum.filmorate.exeptions.NotFoundException;
 import ru.yandex.practicum.filmorate.service.FilmService;
 
 import java.util.*;
@@ -25,7 +24,7 @@ public class FilmController {
 
     @GetMapping("/{id}")
     public FilmDto getFilmById(@PathVariable Integer id) {
-        return filmService.getFilmById(id).orElseThrow(() -> new NotFoundException("Not Found"));
+        return filmService.getFilmById(id);
     }
 
     @PostMapping
@@ -58,5 +57,16 @@ public class FilmController {
     @GetMapping("/popular")
     public List<FilmDto> getPopularFilm(@RequestParam(name = "count", required = false, defaultValue = "10") int count) {
         return filmService.getPopularFilm(count);
+    }
+
+    /**
+     * Удаляет фильм по идентификатору.
+     *
+     * @param id идентификатор фильма
+     */
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteFilm(@PathVariable Integer id) {
+        filmService.deleteFilm(id);
     }
 }
