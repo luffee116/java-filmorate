@@ -101,6 +101,11 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
             GROUP BY f.id, m.id, m.name, m.description
             ORDER BY (SELECT COUNT(*) FROM film_likes fl WHERE fl.film_id = f.id) DESC
             """;
+    private static final String GET_LIKED_FILMS_BY_USER_ID_QUERY = """
+            SELECT film_id
+            FROM film_likes
+            WHERE user_id = ?;
+            """;
 
     public FilmDbStorage(JdbcTemplate jdbcTemplate) {
         super(jdbcTemplate);
@@ -226,7 +231,7 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
     }
 
     public Set<Integer> getLikedFilmsIds(Integer userId) {
-        return new HashSet<>(jdbcTemplate.queryForList(GET_LIKES_BY_FILM_ID_QUERY, Integer.class, userId));
+        return new HashSet<>(jdbcTemplate.queryForList(GET_LIKED_FILMS_BY_USER_ID_QUERY, Integer.class, userId));
     }
     // ВСПОМОГАТЕЛЬНЫЕ МЕТОДЫ ––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
 
