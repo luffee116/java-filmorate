@@ -15,8 +15,8 @@ public class UserFeedDbStorage implements UserFeedStorage {
     private final JdbcTemplate jdbcTemplate;
 
     private static final String ADD_EVENT_QUERY = """
-                INSERT INTO user_feed (timestamp, user_id, event_type, operation, entity_id) 
-                VALUES (?, ?, ?, ?, ?)
+            INSERT INTO user_feed (timestamp, user_id, event_type, operation, entity_id)
+            VALUES (?, ?, ?, ?, ?)
             """;
 
     private static final String GET_FEED_BY_USER_ID_QUERY = """
@@ -29,29 +29,11 @@ public class UserFeedDbStorage implements UserFeedStorage {
 
     @Override
     public void addEvent(UserFeedEvent event) {
-        jdbcTemplate.update(
-                ADD_EVENT_QUERY,
-                event.getTimestamp(),
-                event.getUserId(),
-                event.getEventType(),
-                event.getOperation(),
-                event.getEntityId()
-        );
+        jdbcTemplate.update(ADD_EVENT_QUERY, event.getTimestamp(), event.getUserId(), event.getEventType(), event.getOperation(), event.getEntityId());
     }
 
     @Override
     public List<UserFeedEvent> getFeedByUserId(int userId) {
-        return jdbcTemplate.query(
-                GET_FEED_BY_USER_ID_QUERY,
-                (rs, rowNum) -> UserFeedEvent.builder()
-                        .eventId(rs.getInt("event_id"))
-                        .timestamp(rs.getLong("timestamp"))
-                        .userId(rs.getInt("user_id"))
-                        .eventType(rs.getString("event_type"))
-                        .operation(rs.getString("operation"))
-                        .entityId(rs.getInt("entity_id"))
-                        .build(),
-                userId
-        );
+        return jdbcTemplate.query(GET_FEED_BY_USER_ID_QUERY, (rs, rowNum) -> UserFeedEvent.builder().eventId(rs.getInt("event_id")).timestamp(rs.getLong("timestamp")).userId(rs.getInt("user_id")).eventType(rs.getString("event_type")).operation(rs.getString("operation")).entityId(rs.getInt("entity_id")).build(), userId);
     }
 }
