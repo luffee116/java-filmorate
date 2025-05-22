@@ -17,6 +17,7 @@ import ru.yandex.practicum.filmorate.repository.impl.UserDbStorage;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @Service
 public class FilmService {
@@ -88,6 +89,16 @@ public class FilmService {
         List<Film> commonFilms = filmStorage.getCommonFilms(userId, friendId);
         log.info("Найдено {} общих фильмов для пользователей: userId={}, friendId={}", commonFilms.size(), userId, friendId);
         return commonFilms.stream().map(FilmDtoMapper::mapToFilmDto).toList();
+    }
+
+    /**
+     * Возвращает множество идентификаторов фильмов, которые были лайкнуты пользователем с указанным ID.
+     *
+     * @param userId идентификатор пользователя, для которого нужно получить лайки.
+     * @return множество идентификаторов фильмов, лайкнутых данным пользователем.
+     */
+    public Set<Integer> getLikedFilmsIds(Integer userId) {
+        return filmStorage.getLikedFilmsIds(userId);
     }
 
     public Optional<FilmDto> getFilmById(Integer id) {

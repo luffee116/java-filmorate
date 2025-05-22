@@ -225,7 +225,11 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
         return filmsToResponse.stream().map(FilmMapper::mapToFilm).toList();
     }
 
+    public Set<Integer> getLikedFilmsIds(Integer userId) {
+        return new HashSet<>(jdbcTemplate.queryForList(GET_LIKES_BY_FILM_ID_QUERY, Integer.class, userId));
+    }
     // ВСПОМОГАТЕЛЬНЫЕ МЕТОДЫ ––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
+
     // Добавление жанров
 
     private void addFilmGenres(Set<Genre> genresSet, int id) {
@@ -256,7 +260,6 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
     }
 
     //Наполнение фильма
-
     private List<FilmDto> addGenresAndLikesToFilmList(List<FilmDto> films,
                                                       Map<Integer, List<Integer>> likes,
                                                       Map<Integer, List<GenreDto>> genres) {
@@ -267,16 +270,17 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
 
         return films;
     }
-    // Проверка существования фильма
 
+    // Проверка существования фильма
     private void checkFilm(Film film) {
         checkEntityExist(film.getId(), TypeEntity.FILM);
     }
-    // Проверка существования жанра
 
+    // Проверка существования жанра
     private void checkGenre(Genre genre) {
         checkEntityExist(genre.getId(), TypeEntity.GENRE);
     }
+
     // Проверка существования рейтинга
 
     private void checkMpaRating(Film film) {
