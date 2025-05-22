@@ -14,7 +14,7 @@ public final class EventDtoMapper {
                 .userId(event.getUserId())
                 .eventType(event.getEventType())
                 .operation(event.getOperation())
-                .eventId( event.getEventId())
+                .eventId(event.getEventId())
                 .entityId((int) event.getEntityId())
                 .build();
     }
