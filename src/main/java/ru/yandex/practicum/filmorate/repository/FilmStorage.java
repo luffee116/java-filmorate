@@ -24,4 +24,6 @@ public interface FilmStorage {
     void delete(Integer id);
 
     boolean existsById(Integer id);
+
+    List<Film> getCommonFilms(Integer userId, Integer friendId);
 }

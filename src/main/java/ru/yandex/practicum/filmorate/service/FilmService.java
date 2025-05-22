@@ -78,6 +78,22 @@ public class FilmService {
         Film film = filmStorage.getById(id)
                 .orElseThrow(() -> new NotFoundException("Film not found"));
         return FilmDtoMapper.mapToFilmDto(film);
+    /**
+     * Возвращает список фильмов, которые понравились как пользователю, так и его другу.
+     * Результат отсортирован по убыванию популярности (количеству лайков).
+     *
+     * @param userId   идентификатор пользователя.
+     * @param friendId идентификатор друга пользователя.
+     * @return список DTO фильмов, которые понравились обоим пользователям,
+     * отсортированных по популярности.
+     * @throws UserNotFoundException если один из пользователей не найден.
+     */
+    public List<FilmDto> getCommonFilms(Integer userId, Integer friendId) {
+        getExistingUser(userId);
+        getExistingUser(friendId);
+        List<Film> commonFilms = filmStorage.getCommonFilms(userId, friendId);
+        log.info("Найдено {} общих фильмов для пользователей: userId={}, friendId={}", commonFilms.size(), userId, friendId);
+        return commonFilms.stream().map(FilmDtoMapper::mapToFilmDto).toList();
     }
 
     private void validateFilmAndUserId(Integer filmId, Integer userId) {
@@ -97,5 +113,21 @@ public class FilmService {
         }
         filmStorage.delete(id);
         log.info("Удаленный фильм с id: {}", id);
+    }
+
+    /**
+     * Проверяет существование пользователя с указанным идентификатором.
+     * <p>
+     * Если пользователь с {@code userId} не найден, выбрасывается исключение {@link UserNotFoundException}.
+     *
+     * @param userId идентификатор пользователя для проверки.
+     * @throws UserNotFoundException если пользователь с таким {@code userId} не существует.
+     */
+    private void getExistingUser(Integer userId) {
+        userStorage.getUserById(userId).orElseThrow(() -> {
+            String message = "Пользователь с id=" + userId + " не найден";
+            log.warn(message);
+            return new UserNotFoundException(message);
+        });
     }
 }
