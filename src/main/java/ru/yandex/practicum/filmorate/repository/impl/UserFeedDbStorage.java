@@ -15,17 +15,17 @@ public class UserFeedDbStorage implements UserFeedStorage {
     private final JdbcTemplate jdbcTemplate;
 
     private static final String ADD_EVENT_QUERY = """
-        INSERT INTO user_feed (timestamp, user_id, event_type, operation, entity_id) 
-        VALUES (?, ?, ?, ?, ?)
-    """;
+                INSERT INTO user_feed (timestamp, user_id, event_type, operation, entity_id) 
+                VALUES (?, ?, ?, ?, ?)
+            """;
 
     private static final String GET_FEED_BY_USER_ID_QUERY = """
-    SELECT event_id, timestamp, uf.user_id, event_type, operation, entity_id
-    FROM user_feed uf
-    JOIN users u ON uf.user_id = u.id
-    WHERE uf.user_id IN (SELECT friend_id FROM user_friends WHERE user_id = ?)
-    ORDER BY timestamp DESC
-    """;
+            SELECT event_id, timestamp, uf.user_id, event_type, operation, entity_id
+            FROM user_feed uf
+            JOIN users u ON uf.user_id = u.id
+            WHERE uf.user_id IN (SELECT friend_id FROM user_friends WHERE user_id = ?)
+            ORDER BY timestamp DESC
+            """;
 
     @Override
     public void addEvent(UserFeedEvent event) {
