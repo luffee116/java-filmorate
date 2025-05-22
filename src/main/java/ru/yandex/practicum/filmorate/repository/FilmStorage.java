@@ -20,4 +20,6 @@ public interface FilmStorage {
     Optional<Boolean> removeLike(Integer filmId, Integer userId);
 
     List<Film> getPopularFilm(Integer count);
+
+    List<Film> getCommonFilms(Integer userId, Integer friendId);
 }
