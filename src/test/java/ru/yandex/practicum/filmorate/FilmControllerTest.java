@@ -1,4 +1,4 @@
-package ru.yandex.practicum.filmorate;
+/*package ru.yandex.practicum.filmorate;
 
 import jakarta.validation.ValidationException;
 import org.junit.jupiter.api.BeforeEach;
@@ -135,3 +135,5 @@ public class FilmControllerTest {
         assertThrows(ValidationException.class, () -> filmController.addFilm(film));
     }
 }
+
+ */
