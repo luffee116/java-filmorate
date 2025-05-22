@@ -1,9 +1,11 @@
 package ru.yandex.practicum.filmorate.service;
 
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+//import org.slf4j.Logger;
+//import org.slf4j.LoggerFactory;
+//import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.dto.FilmDto;
 import ru.yandex.practicum.filmorate.exeptions.FilmNotFoundException;
@@ -22,21 +24,23 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
+@AllArgsConstructor
 @Service
+@Slf4j
 public class FilmService {
     private final FilmDbStorage filmStorage;
     private final UserDbStorage userStorage;
     private final UserFeedDbStorage userFeedStorage;
 
-    private static final Logger log = LoggerFactory.getLogger(FilmService.class);
+    //   private static final Logger log = LoggerFactory.getLogger(FilmService.class);
 
-    @Autowired
+ /*   @Autowired
     public FilmService(FilmDbStorage filmStorage, UserDbStorage userStorage, UserFeedDbStorage userFeedStorage) {
         this.filmStorage = filmStorage;
         this.userStorage = userStorage;
         this.userFeedStorage = userFeedStorage;
     }
-
+*/
     public FilmDto create(FilmDto requestFilm) {
         Film request = FilmMapper.mapToFilm(requestFilm);
         Film film = filmStorage.create(request);
