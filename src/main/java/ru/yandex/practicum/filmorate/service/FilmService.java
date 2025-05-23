@@ -12,12 +12,9 @@ import ru.yandex.practicum.filmorate.exeptions.UserNotFoundException;
 import ru.yandex.practicum.filmorate.mapper.dto.FilmDtoMapper;
 import ru.yandex.practicum.filmorate.mapper.toEntity.FilmMapper;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.model.UserFeedEvent;
 import ru.yandex.practicum.filmorate.repository.impl.FilmDbStorage;
 import ru.yandex.practicum.filmorate.repository.impl.UserDbStorage;
-import ru.yandex.practicum.filmorate.repository.impl.UserFeedDbStorage;
 
-import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 

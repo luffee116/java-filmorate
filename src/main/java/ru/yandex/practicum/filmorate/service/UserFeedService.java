@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.dto.EventDto;
 import ru.yandex.practicum.filmorate.mapper.dto.EventDtoMapper;
-import ru.yandex.practicum.filmorate.mapper.dto.UserDtoMapper;
 import ru.yandex.practicum.filmorate.model.UserFeedEvent;
 import ru.yandex.practicum.filmorate.repository.impl.UserFeedDbStorage;
 
