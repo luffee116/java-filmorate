@@ -16,7 +16,6 @@ import ru.yandex.practicum.filmorate.repository.impl.FilmDbStorage;
 import ru.yandex.practicum.filmorate.repository.impl.UserDbStorage;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 
 @Service
@@ -80,6 +79,8 @@ public class FilmService {
         Film film = filmStorage.getById(id)
                 .orElseThrow(() -> new NotFoundException("Film not found"));
         return FilmDtoMapper.mapToFilmDto(film);
+    }
+
     /**
      * Возвращает список фильмов, которые понравились как пользователю, так и его другу.
      * Результат отсортирован по убыванию популярности (количеству лайков).
@@ -88,7 +89,7 @@ public class FilmService {
      * @param friendId идентификатор друга пользователя.
      * @return список DTO фильмов, которые понравились обоим пользователям,
      * отсортированных по популярности.
-     * @throws UserNotFoundException если один из пользователей не найден.
+     * @throws NotFoundException если один из пользователей не найден.
      */
     public List<FilmDto> getCommonFilms(Integer userId, Integer friendId) {
         getExistingUser(userId);
@@ -106,12 +107,6 @@ public class FilmService {
      */
     public Set<Integer> getLikedFilmsIds(Integer userId) {
         return filmStorage.getLikedFilmsIds(userId);
-    }
-
-    public Optional<FilmDto> getFilmById(Integer id) {
-        Optional<Film> film = filmStorage.getById(id);
-        log.info("Отправлен фильм с id: {}", id);
-        return Optional.of(FilmDtoMapper.mapToFilmDto(film.get()));
     }
 
     private void validateFilmAndUserId(Integer filmId, Integer userId) {
@@ -136,16 +131,16 @@ public class FilmService {
     /**
      * Проверяет существование пользователя с указанным идентификатором.
      * <p>
-     * Если пользователь с {@code userId} не найден, выбрасывается исключение {@link UserNotFoundException}.
+     * Если пользователь с {@code userId} не найден, выбрасывается исключение {@link NotFoundException}.
      *
      * @param userId идентификатор пользователя для проверки.
-     * @throws UserNotFoundException если пользователь с таким {@code userId} не существует.
+     * @throws NotFoundException если пользователь с таким {@code userId} не существует.
      */
     private void getExistingUser(Integer userId) {
         userStorage.getUserById(userId).orElseThrow(() -> {
             String message = "Пользователь с id=" + userId + " не найден";
             log.warn(message);
-            return new UserNotFoundException(message);
+            return new NotFoundException(message);
         });
     }
 }

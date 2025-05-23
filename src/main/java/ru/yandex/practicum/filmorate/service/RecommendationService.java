@@ -38,7 +38,6 @@ public class RecommendationService {
         return filmService.getLikedFilmsIds(mostSimilarUserId).stream()
                 .filter(filmId -> !likedByUser.contains(filmId))
                 .map(filmService::getFilmById)
-                .flatMap(Optional::stream)
                 .toList();
     }
 
