@@ -5,7 +5,7 @@ import ru.yandex.practicum.filmorate.model.UserFeedEvent;
 
 public final class EventDtoMapper {
 
-    public static EventDto mapToDto(final UserFeedEvent event) {
+    public static EventDto mapToEventDto(final UserFeedEvent event) {
         if (event == null) {
             return null;
         }

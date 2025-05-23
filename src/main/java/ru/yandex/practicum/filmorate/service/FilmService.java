@@ -25,15 +25,15 @@ import java.util.Optional;
 public class FilmService {
     private final FilmDbStorage filmStorage;
     private final UserDbStorage userStorage;
-    private final UserFeedDbStorage userFeedStorage;
+    private final UserFeedService userFeedService;
 
     private static final Logger log = LoggerFactory.getLogger(FilmService.class);
 
     @Autowired
-    public FilmService(FilmDbStorage filmStorage, UserDbStorage userStorage, UserFeedDbStorage userFeedStorage) {
+    public FilmService(FilmDbStorage filmStorage, UserDbStorage userStorage, UserFeedService userFeedService) {
         this.filmStorage = filmStorage;
         this.userStorage = userStorage;
-        this.userFeedStorage = userFeedStorage;
+        this.userFeedService = userFeedService;
     }
 
     public FilmDto create(FilmDto requestFilm) {
@@ -62,28 +62,14 @@ public class FilmService {
     public void addLike(Integer filmId, Integer userId) {
         validateFilmAndUserId(filmId, userId);
         filmStorage.addLike(filmId, userId).orElseThrow(() -> new LikeException("Ошибка при добавлении лайка"));
-        UserFeedEvent event = UserFeedEvent.builder()
-                .timestamp(Instant.now().toEpochMilli())
-                .userId(userId)
-                .eventType("LIKE")
-                .operation("ADD")
-                .entityId(filmId)
-                .build();
-        userFeedStorage.addEvent(event);
+        userFeedService.createEvent(userId, "LIKE", "ADD", filmId);
         log.info("Добавлен лайка для фильма id: {}, пользователем с id: {}", filmId, userId);
     }
 
     public void removeLike(Integer filmId, Integer userId) {
         validateFilmAndUserId(filmId, userId);
         filmStorage.removeLike(filmId, userId).orElseThrow(() -> new LikeException("Ошибка при удалении лайка"));
-        UserFeedEvent event = UserFeedEvent.builder()
-                .timestamp(Instant.now().toEpochMilli())
-                .userId(userId)
-                .eventType("LIKE")
-                .operation("REMOVE")
-                .entityId(filmId)
-                .build();
-        userFeedStorage.addEvent(event);
+        userFeedService.createEvent(userId, "LIKE", "REMOVE", filmId);
         log.info("Удален лайк для фильма с id: {}, пользователем с id: {}", filmId, userId);
     }
 

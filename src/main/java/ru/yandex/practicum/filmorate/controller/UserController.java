@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import ru.yandex.practicum.filmorate.dto.EventDto;
 import ru.yandex.practicum.filmorate.dto.UserDto;
 import ru.yandex.practicum.filmorate.model.UserFeedEvent;
 import ru.yandex.practicum.filmorate.service.UserFeedService;
@@ -68,7 +69,7 @@ public class UserController {
 
 
     @GetMapping("/{userId}/feed")
-    public List<UserFeedEvent> getUserFeed(@PathVariable Integer userId) {
+    public List<EventDto> getUserFeed(@PathVariable Integer userId) {
         return feedService.getFeedByUserId(userId);
     }
 }

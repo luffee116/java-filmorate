@@ -2,6 +2,9 @@ package ru.yandex.practicum.filmorate.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.dto.EventDto;
+import ru.yandex.practicum.filmorate.mapper.dto.EventDtoMapper;
+import ru.yandex.practicum.filmorate.mapper.dto.UserDtoMapper;
 import ru.yandex.practicum.filmorate.model.UserFeedEvent;
 import ru.yandex.practicum.filmorate.repository.impl.UserFeedDbStorage;
 
@@ -26,7 +29,8 @@ public class UserFeedService {
         userFeedRepository.addEvent(event);
     }
 
-    public List<UserFeedEvent> getFeedByUserId(int userId) {
-        return userFeedRepository.getFeedByUserId(userId);
+    public List<EventDto> getFeedByUserId(int userId) {
+       List<UserFeedEvent> userFeed = userFeedRepository.getFeedByUserId(userId);
+        return userFeed.stream().map(EventDtoMapper::mapToEventDto).toList();
     }
 }
