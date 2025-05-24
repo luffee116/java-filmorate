@@ -1,14 +1,14 @@
 package ru.yandex.practicum.filmorate.service;
 
+import jakarta.transaction.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.dto.FilmDto;
-import ru.yandex.practicum.filmorate.exeptions.FilmNotFoundException;
+import ru.yandex.practicum.filmorate.exeptions.FilmUpdateException;
+import ru.yandex.practicum.filmorate.exeptions.NotFoundException;
 import ru.yandex.practicum.filmorate.exeptions.LikeException;
-import ru.yandex.practicum.filmorate.exeptions.ReviewException;
-import ru.yandex.practicum.filmorate.exeptions.UserNotFoundException;
 import ru.yandex.practicum.filmorate.mapper.dto.FilmDtoMapper;
 import ru.yandex.practicum.filmorate.mapper.toEntity.FilmMapper;
 import ru.yandex.practicum.filmorate.model.Film;
@@ -16,7 +16,7 @@ import ru.yandex.practicum.filmorate.repository.impl.FilmDbStorage;
 import ru.yandex.practicum.filmorate.repository.impl.UserDbStorage;
 
 import java.util.List;
-import java.util.Optional;
+import java.util.Set;
 
 @Service
 public class FilmService {
@@ -40,14 +40,17 @@ public class FilmService {
         return FilmDtoMapper.mapToFilmDto(film);
     }
 
-    public FilmDto update(FilmDto requestFilm) {
-        Optional<Film> filmToUpdate = filmStorage.getById(requestFilm.getId());
-        if (filmToUpdate.isPresent()) {
-            Film film = filmStorage.update(FilmMapper.updateFilm(requestFilm, filmToUpdate.get()));
-            log.info("Обновлен фильм фильм с id: {}", requestFilm.getId());
-            return FilmDtoMapper.mapToFilmDto(film);
+    @Transactional
+    public FilmDto update(FilmDto filmDto) {
+        // 1. Проверяем существование фильма
+        if (!filmStorage.existsById(filmDto.getId())) {
+            throw new FilmUpdateException("Cannot update non-existent film with id=" + filmDto.getId());
         }
-        return null;
+
+        // 2. Обновляем фильм
+        Film film = FilmMapper.mapToFilm(filmDto);
+        Film updatedFilm = filmStorage.update(film);
+        return FilmDtoMapper.mapToFilmDto(updatedFilm);
     }
 
     public List<FilmDto> getAll() {
@@ -76,14 +79,38 @@ public class FilmService {
         return popularFilms.stream().map(FilmDtoMapper::mapToFilmDto).toList();
     }
 
-    public Optional<FilmDto> getFilmById(Integer id) {
-        if (id > 0) {
-            Optional<Film> film = filmStorage.getById(id);
-            log.info("Отправлен фильм с id: {}", id);
-            return Optional.of(FilmDtoMapper.mapToFilmDto(film.get()));
-        } else {
-            throw new FilmNotFoundException(String.format("Фильм с id %s не найден:", id));
-        }
+    public FilmDto getFilmById(Integer id) {
+        Film film = filmStorage.getById(id)
+                .orElseThrow(() -> new NotFoundException("Film not found"));
+        return FilmDtoMapper.mapToFilmDto(film);
+    }
+
+    /**
+     * Возвращает список фильмов, которые понравились как пользователю, так и его другу.
+     * Результат отсортирован по убыванию популярности (количеству лайков).
+     *
+     * @param userId   идентификатор пользователя.
+     * @param friendId идентификатор друга пользователя.
+     * @return список DTO фильмов, которые понравились обоим пользователям,
+     * отсортированных по популярности.
+     * @throws NotFoundException если один из пользователей не найден.
+     */
+    public List<FilmDto> getCommonFilms(Integer userId, Integer friendId) {
+        getExistingUser(userId);
+        getExistingUser(friendId);
+        List<Film> commonFilms = filmStorage.getCommonFilms(userId, friendId);
+        log.info("Найдено {} общих фильмов для пользователей: userId={}, friendId={}", commonFilms.size(), userId, friendId);
+        return commonFilms.stream().map(FilmDtoMapper::mapToFilmDto).toList();
+    }
+
+    /**
+     * Возвращает множество идентификаторов фильмов, которые были лайкнуты пользователем с указанным ID.
+     *
+     * @param userId идентификатор пользователя, для которого нужно получить лайки.
+     * @return множество идентификаторов фильмов, лайкнутых данным пользователем.
+     */
+    public Set<Integer> getLikedFilmsIds(Integer userId) {
+        return filmStorage.getLikedFilmsIds(userId);
     }
 
     public void addReview(Integer filmId, Integer userId, String text) {
@@ -94,7 +121,37 @@ public class FilmService {
     }
 
     private void validateFilmAndUserId(Integer filmId, Integer userId) {
-        if (filmStorage.getById(filmId).isEmpty()) throw new FilmNotFoundException("Film not found");
-        if (userStorage.getUserById(userId).isEmpty()) throw new UserNotFoundException("User not found");
+        if (filmStorage.getById(filmId).isEmpty()) throw new NotFoundException("Film not found");
+        if (userStorage.getUserById(userId).isEmpty()) throw new NotFoundException("User not found");
+    }
+
+    /**
+     * Удаляет фильм из хранилища.
+     *
+     * @param id идентификатор фильма
+     */
+    @Transactional
+    public void deleteFilm(Integer id) {
+        if (!filmStorage.existsById(id)) {
+            throw new NotFoundException("Фильм с id не найден: " + id);
+        }
+        filmStorage.delete(id);
+        log.info("Удаленный фильм с id: {}", id);
+    }
+
+    /**
+     * Проверяет существование пользователя с указанным идентификатором.
+     * <p>
+     * Если пользователь с {@code userId} не найден, выбрасывается исключение {@link NotFoundException}.
+     *
+     * @param userId идентификатор пользователя для проверки.
+     * @throws NotFoundException если пользователь с таким {@code userId} не существует.
+     */
+    private void getExistingUser(Integer userId) {
+        userStorage.getUserById(userId).orElseThrow(() -> {
+            String message = "Пользователь с id=" + userId + " не найден";
+            log.warn(message);
+            return new NotFoundException(message);
+        });
     }
 }

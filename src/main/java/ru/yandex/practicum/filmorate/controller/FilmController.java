@@ -6,10 +6,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.dto.FilmDto;
-import ru.yandex.practicum.filmorate.exeptions.NotFoundException;
 import ru.yandex.practicum.filmorate.service.FilmService;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
 
 @Validated
 @AllArgsConstructor
@@ -25,7 +25,7 @@ public class FilmController {
 
     @GetMapping("/{id}")
     public FilmDto getFilmById(@PathVariable Integer id) {
-        return filmService.getFilmById(id).orElseThrow(() -> new NotFoundException("Not Found"));
+        return filmService.getFilmById(id);
     }
 
     @PostMapping
@@ -65,5 +65,31 @@ public class FilmController {
                           @PathVariable Integer userId,
                           @RequestBody Map<String, String> text) {
         filmService.addReview(filmId, userId, text.get("text"));
+    }
+}
+    /**
+     * Удаляет фильм по идентификатору.
+     *
+     * @param id идентификатор фильма
+     */
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteFilm(@PathVariable Integer id) {
+        filmService.deleteFilm(id);
+    }
+
+    /**
+     * Возвращает список фильмов, которые понравились обоим пользователям — указанному пользователю и его другу.
+     * Список отсортирован по убыванию популярности (количеству лайков).
+     *
+     * @param userId   идентификатор пользователя.
+     * @param friendId идентификатор друга пользователя.
+     * @return список DTO фильмов, которые оба пользователя отметили как понравившиеся,
+     * отсортированных по популярности.
+     */
+    @GetMapping("/common")
+    public List<FilmDto> getCommonFilms(@RequestParam Integer userId,
+                                        @RequestParam Integer friendId) {
+        return filmService.getCommonFilms(userId, friendId);
     }
 }
