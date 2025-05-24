@@ -22,4 +22,10 @@ public interface FilmStorage {
     List<Film> getPopularFilm(Integer count);
 
     Optional<Boolean> addReview(Integer filmId, Integer userId, String text);
+
+    void delete(Integer id);
+
+    boolean existsById(Integer id);
+
+    List<Film> getCommonFilms(Integer userId, Integer friendId);
 }

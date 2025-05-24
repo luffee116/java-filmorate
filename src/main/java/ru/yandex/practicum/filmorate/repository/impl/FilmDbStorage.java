@@ -1,12 +1,16 @@
 package ru.yandex.practicum.filmorate.repository.impl;
 
+import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataAccessException;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.dto.FilmDto;
 import ru.yandex.practicum.filmorate.dto.GenreDto;
+import ru.yandex.practicum.filmorate.exeptions.NotFoundException;
 import ru.yandex.practicum.filmorate.mapper.toEntity.FilmMapper;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
@@ -17,7 +21,6 @@ import ru.yandex.practicum.filmorate.rowMappers.GenreDtoRowMapper;
 
 import java.sql.Date;
 import java.sql.PreparedStatement;
-
 import java.util.*;
 
 @Repository
@@ -94,6 +97,21 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
             """;
     private static final String DELETE_FILM_GENRES_BY_ID = """
             DELETE FROM film_genres WHERE film_id = ?;
+            """;
+    private static final String GET_COMMON_FILMS = """
+            SELECT f.*, m.id AS mpa_id, m.name AS mpa_name, m.description AS mpa_description
+            FROM films f
+            JOIN film_likes fl1 ON f.id = fl1.film_id
+            JOIN film_likes fl2 ON f.id = fl2.film_id
+            JOIN mpa_rating m ON f.mpa_rating_id = m.id
+            WHERE fl1.user_id = ? AND fl2.user_id = ?
+            GROUP BY f.id, m.id, m.name, m.description
+            ORDER BY (SELECT COUNT(*) FROM film_likes fl WHERE fl.film_id = f.id) DESC
+            """;
+    private static final String GET_LIKED_FILMS_BY_USER_ID_QUERY = """
+            SELECT film_id
+            FROM film_likes
+            WHERE user_id = ?;
             """;
 
     private static final String ADD_REVIEW_TO_FILM_QUERY = """
@@ -179,13 +197,24 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
     // Получение фильма по id ––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
     @Override
     public Optional<Film> getById(Integer id) {
-        FilmDto filmDto = jdbcTemplate.queryForObject(GET_FILM_BY_ID_QUERY, new FilmRowMapper(), id);
+        try {
+            // 1. Получаем основную информацию о фильме
+            FilmDto filmDto = jdbcTemplate.queryForObject(
+                    GET_FILM_BY_ID_QUERY,
+                    new FilmRowMapper(),
+                    id
+            );
 
-        if (filmDto != null) {
-            addGenresAndLikesAndReviewsToFilm(filmDto);
-            return Optional.of(FilmMapper.mapToFilm(filmDto));
+            // 2. Если фильм найден, дополняем его данными
+            if (filmDto != null) {
+                addGenresAndLikesToFilm(filmDto);
+                return Optional.of(FilmMapper.mapToFilm(filmDto));
+            }
+            return Optional.empty();
+        } catch (EmptyResultDataAccessException e) {
+            // 3. Обрабатываем случай, когда фильм не найден
+            return Optional.empty();
         }
-        return Optional.empty();
     }
 
     // Добавление лайка фильму –––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
@@ -215,9 +244,73 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
         return filmsToResponse.stream().map(FilmMapper::mapToFilm).toList();
     }
 
+    /**
+     * Удаляет фильм по идентификатору.
+     *
+     * @param id идентификатор фильма
+     * @throws NotFoundException если фильм не найден
+     */
+    @Override
+    @Transactional
+    public void delete(Integer id) {
+        // Проверяем существование фильма
+        if (!existsById(id)) {
+            throw new NotFoundException("Фильм с id=" + id + " не найден");
+        }
 
+        // Удаляем связанные данные
+        jdbcTemplate.update("DELETE FROM film_likes WHERE film_id = ?", id);
+        jdbcTemplate.update("DELETE FROM film_genres WHERE film_id = ?", id);
+
+        // Удаляем фильм
+        jdbcTemplate.update("DELETE FROM films WHERE id = ?", id);
+    }
+
+    /**
+     * Проверяет существование фильма в базе данных по указанному идентификатору.
+     * <p>
+     * Метод выполняет оптимизированный запрос к базе данных, используя оператор EXISTS,
+     * который прекращает поиск после нахождения первой записи.
+     * </p>
+     *
+     * @param id идентификатор фильма для проверки (должен быть не null)
+     * @return true - если фильм с указанным ID существует, false - если не существует
+     */
+    @Override
+    public boolean existsById(Integer id) {
+        String sql = "SELECT EXISTS(SELECT 1 FROM films WHERE id = ?)";
+        try {
+            return Boolean.TRUE.equals(jdbcTemplate.queryForObject(sql, Boolean.class, id));
+        } catch (DataAccessException e) {
+            log.error("Проверка ошибки существование пленки с идентификатором: {}", id, e);
+            return false;
+        }
+    }
+    /**
+     * Получает список фильмов, которые понравились как указанному пользователю, так и его другу.
+     * Использует SQL-запрос для извлечения общих фильмов, затем обогащает их жанрами и лайками.
+     *
+     * @param userId   идентификатор пользователя.
+     * @param friendId идентификатор друга пользователя.
+     * @return список фильмов, понравившихся обоим пользователям.
+     */
+    public List<Film> getCommonFilms(Integer userId, Integer friendId) {
+        Map<Integer, List<Integer>> likes = setUpLikes();
+        Map<Integer, List<GenreDto>> genres = setUpGenres();
+
+        List<FilmDto> films = jdbcTemplate.query(GET_COMMON_FILMS, new FilmRowMapper(), userId, friendId);
+        List<FilmDto> filmsToResponse = addGenresAndLikesToFilmList(films, likes, genres);
+
+        return filmsToResponse.stream().map(FilmMapper::mapToFilm).toList();
+    }
+
+    public Set<Integer> getLikedFilmsIds(Integer userId) {
+        return new HashSet<>(jdbcTemplate.queryForList(GET_LIKED_FILMS_BY_USER_ID_QUERY, Integer.class, userId));
+    }
     // ВСПОМОГАТЕЛЬНЫЕ МЕТОДЫ ––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
+
     // Добавление жанров
+
     private void addFilmGenres(Set<Genre> genresSet, int id) {
         if (genresSet != null && !genresSet.isEmpty()) {
             genresSet.forEach(this::checkGenre);
@@ -226,17 +319,20 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
     }
 
     // Получение жанров фильма –––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
+
     private Set<GenreDto> loadGenresForFilm(Integer id) {
         return new HashSet<>(jdbcTemplate.query(GET_GENRES_ID_FOR_FILM_ID_QUERY, new GenreDtoRowMapper(), id));
     }
 
     // Получение лайков фильма –––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
+
     private Set<Integer> loadLikesForFilm(Integer id) {
         return new HashSet<>(jdbcTemplate.queryForList(GET_LIKES_BY_FILM_ID_QUERY, Integer.class, id));
     }
 
     // Преобразование ––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
-    private void addGenresAndLikesAndReviewsToFilm(FilmDto filmDto) {
+
+    private void addGenresAndLikesToFilm(FilmDto filmDto) {
         Integer filmId = filmDto.getId();
         filmDto.setGenres(loadGenresForFilm(filmId));
         filmDto.setLikes(loadLikesForFilm(filmId));
@@ -267,6 +363,7 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
     }
 
     // Проверка существования рейтинга
+
     private void checkMpaRating(Film film) {
         checkEntityExist(film.getMpa().getId(), TypeEntity.RATING);
     }

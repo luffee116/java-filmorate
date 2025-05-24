@@ -5,7 +5,6 @@ import ru.yandex.practicum.filmorate.model.Film;
 
 import java.util.stream.Collectors;
 
-
 public final class FilmDtoMapper {
     public static FilmDto mapToFilmDto(Film film) {
         if (film.getGenres() == null) {

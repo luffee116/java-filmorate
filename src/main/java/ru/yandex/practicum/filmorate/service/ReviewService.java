@@ -236,6 +236,9 @@ public class ReviewService {
      * @param userId id пользователя
      */
     private void checkUserAndFilmExist(Integer userId, Integer filmId) {
+        if (userId == null || filmId == null) {
+            return;
+        }
         userService.getUserById(userId);
         filmService.getFilmById(filmId);
     }
