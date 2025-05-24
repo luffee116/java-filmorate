@@ -36,7 +36,7 @@ public class FilmService {
     public FilmDto create(FilmDto requestFilm) {
         Film request = FilmMapper.mapToFilm(requestFilm);
         Film film = filmStorage.create(request);
-        log.info("Создание фильма с id: {}", requestFilm.getId());
+        log.info("Создание фильма с id: {}", film.getId());
         return FilmDtoMapper.mapToFilmDto(film);
     }
 

@@ -64,11 +64,14 @@ public class ReviewService {
             );
         }
 
-        userFeedService.createEvent(reviewDto.getUserId(), "REVIEW", "ADD", reviewDto.getReviewId());
         Review request = ReviewMapper.mapToReview(reviewDto);
         Review review = reviewStorage.save(request);
+
+        userFeedService.createEvent(review.getUserId(), "REVIEW", "ADD", review.getReviewId());
+
         return ReviewDtoMapper.mapToDto(review);
     }
+
 
     /**
      * Обновление отзыва
@@ -79,6 +82,7 @@ public class ReviewService {
         checkReviewExist(reviewDto.getReviewId());
         Review request = ReviewMapper.mapToReview(reviewDto);
         Review review = reviewStorage.update(request);
+        userFeedService.createEvent(review.getUserId(), "REVIEW", "UPDATE", review.getReviewId());
         return ReviewDtoMapper.mapToDto(review);
     }
 
@@ -89,9 +93,9 @@ public class ReviewService {
      */
     public void deleteReview(Integer id) {
         checkReviewExist(id);
-        reviewStorage.removeById(id);
         int userId = reviewStorage.getUserIdByReviewId(id);
-        userFeedService.createEvent(userId, "REVIEW", "ADD", id);
+        reviewStorage.removeById(id);
+        userFeedService.createEvent(userId, "REVIEW", "REMOVE", id);
     }
 
     /**
