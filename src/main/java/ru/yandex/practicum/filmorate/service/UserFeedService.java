@@ -29,7 +29,7 @@ public class UserFeedService {
     }
 
     public List<EventDto> getFeedByUserId(int userId) {
-       List<UserFeedEvent> userFeed = userFeedRepository.getFeedByUserId(userId);
+        List<UserFeedEvent> userFeed = userFeedRepository.getFeedByUserId(userId);
         return userFeed.stream().map(EventDtoMapper::mapToEventDto).toList();
     }
 }
