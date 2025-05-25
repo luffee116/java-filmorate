@@ -26,7 +26,7 @@ public class UserFeedDbStorage implements UserFeedStorage {
 
             UNION ALL
 
-            SELECT event_id, timestamp, uf.user_id, event_type, operation, operation, entity_id
+            SELECT event_id, timestamp, uf.user_id, event_type, operation, entity_id
             FROM user_feed uf
             WHERE uf.user_id IN (SELECT friend_id FROM user_friends WHERE user_id = ?)
             ORDER BY timestamp DESC
