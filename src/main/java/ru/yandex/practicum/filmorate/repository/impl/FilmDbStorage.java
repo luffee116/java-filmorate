@@ -67,12 +67,9 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
                        f.DURATION,
                        m.id mpa_id,
                        m.name mpa_name,
-                       m.description mpa_description,
-                       fr.user_id,
-                       fr.text
+                       m.description mpa_description
                 FROM films f
                 LEFT JOIN mpa_rating m ON f.mpa_rating_id = m.id
-                LEFT JOIN FILM_REVIEWS fr ON f.id = fr.film_id
             """;
     private static final String GET_GENRES_ID_FOR_FILM_ID_QUERY = """
                     SELECT g.genre_id,
@@ -114,19 +111,8 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
             WHERE user_id = ?;
             """;
 
-    private static final String ADD_REVIEW_TO_FILM_QUERY = """
-            INSERT INTO FILM_REVIEWS (FILM_ID, USER_ID, TEXT) VALUES (?, ?, ?);
-            """;
-
     public FilmDbStorage(JdbcTemplate jdbcTemplate) {
         super(jdbcTemplate);
-    }
-
-    //Создание отзыва ––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
-    @Override
-    public Optional<Boolean> addReview(Integer filmId, Integer userId, String reviewText) {
-        int rowsUpdated = jdbcTemplate.update(ADD_REVIEW_TO_FILM_QUERY, filmId, userId, reviewText);
-        return Optional.of(rowsUpdated > 0);
     }
 
     // Создание фильма –––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
@@ -137,8 +123,7 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
         KeyHolder keyHolder = new GeneratedKeyHolder();
 
         jdbcTemplate.update(connection -> {
-            PreparedStatement ps = connection.prepareStatement(CREATE_FILM_QUERY,
-                    PreparedStatement.RETURN_GENERATED_KEYS);
+            PreparedStatement ps = connection.prepareStatement(CREATE_FILM_QUERY, PreparedStatement.RETURN_GENERATED_KEYS);
 
             ps.setString(1, film.getName());
             ps.setString(2, film.getDescription());
@@ -284,7 +269,6 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
             return false;
         }
     }
-
     /**
      * Получает список фильмов, которые понравились как указанному пользователю, так и его другу.
      * Использует SQL-запрос для извлечения общих фильмов, затем обогащает их жанрами и лайками.
@@ -404,25 +388,5 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
             return likes;
         });
         return filmLikes;
-    }
-
-    private Map<Integer, Map<Integer, String>> setUpReviews() {
-        String reviewsQuery = """
-                SELECT fr.film_id, fr.user_id, fr.text
-                FROM film_reviews fr
-                """;
-
-        return jdbcTemplate.query(reviewsQuery, rs -> {
-            Map<Integer, Map<Integer, String>> reviews = new HashMap<>();
-            while (rs.next()) {
-                Integer filmId = rs.getInt("film_id");
-                Integer userId = rs.getInt("user_id");
-                String reviewText = rs.getString("text");
-
-                reviews.computeIfAbsent(filmId, k -> new HashMap<>())
-                        .put(userId, reviewText);
-            }
-            return reviews;
-        });
     }
 }
