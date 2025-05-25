@@ -37,7 +37,7 @@ public class FilmService {
     public FilmDto create(FilmDto requestFilm) {
         Film request = FilmMapper.mapToFilm(requestFilm);
         Film film = filmStorage.create(request);
-        log.info("Создание фильма с id: {}", film.getId());
+        log.info("Создание фильма с id: {}", requestFilm.getId());
         return FilmDtoMapper.mapToFilmDto(film);
     }
 
@@ -112,13 +112,6 @@ public class FilmService {
      */
     public Set<Integer> getLikedFilmsIds(Integer userId) {
         return filmStorage.getLikedFilmsIds(userId);
-    }
-
-    public void addReview(Integer filmId, Integer userId, String text) {
-        validateFilmAndUserId(filmId, userId);
-        filmStorage.addReview(filmId, userId, text).orElseThrow(() -> new ReviewException("Ошибка при добавлении отзыва"));
-        log.info("Добавлен отзыв для фильма id: {}, пользователем с id: {}", filmId, userId);
-
     }
 
     private void validateFilmAndUserId(Integer filmId, Integer userId) {
