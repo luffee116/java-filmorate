@@ -284,6 +284,7 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
             return false;
         }
     }
+
     /**
      * Получает список фильмов, которые понравились как указанному пользователю, так и его другу.
      * Использует SQL-запрос для извлечения общих фильмов, затем обогащает их жанрами и лайками.
@@ -407,9 +408,9 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
 
     private Map<Integer, Map<Integer, String>> setUpReviews() {
         String reviewsQuery = """
-            SELECT fr.film_id, fr.user_id, fr.text
-            FROM film_reviews fr
-            """;
+                SELECT fr.film_id, fr.user_id, fr.text
+                FROM film_reviews fr
+                """;
 
         return jdbcTemplate.query(reviewsQuery, rs -> {
             Map<Integer, Map<Integer, String>> reviews = new HashMap<>();
