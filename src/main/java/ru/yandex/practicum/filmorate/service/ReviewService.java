@@ -24,7 +24,6 @@ public class ReviewService {
     ReviewRatingStorage reviewRatingStorage;
     FilmService filmService;
     UserService userService;
-    private final UserFeedService userFeedService;
 
     /**
      * Конструктор ReviewService
@@ -38,12 +37,11 @@ public class ReviewService {
     public ReviewService(ReviewStorage reviewStorage,
                          ReviewRatingStorage reviewRatingStorage,
                          FilmService filmService,
-                         UserService userService, UserFeedService userFeedService) {
+                         UserService userService) {
         this.reviewStorage = reviewStorage;
         this.reviewRatingStorage = reviewRatingStorage;
         this.filmService = filmService;
         this.userService = userService;
-        this.userFeedService = userFeedService;
     }
 
     /**
@@ -66,12 +64,8 @@ public class ReviewService {
 
         Review request = ReviewMapper.mapToReview(reviewDto);
         Review review = reviewStorage.save(request);
-
-        userFeedService.createEvent(review.getUserId(), "REVIEW", "ADD", review.getReviewId());
-
         return ReviewDtoMapper.mapToDto(review);
     }
-
 
     /**
      * Обновление отзыва
@@ -82,7 +76,6 @@ public class ReviewService {
         checkReviewExist(reviewDto.getReviewId());
         Review request = ReviewMapper.mapToReview(reviewDto);
         Review review = reviewStorage.update(request);
-        userFeedService.createEvent(review.getUserId(), "REVIEW", "UPDATE", review.getReviewId());
         return ReviewDtoMapper.mapToDto(review);
     }
 
@@ -93,9 +86,7 @@ public class ReviewService {
      */
     public void deleteReview(Integer id) {
         checkReviewExist(id);
-        int userId = reviewStorage.getUserIdByReviewId(id);
         reviewStorage.removeById(id);
-        userFeedService.createEvent(userId, "REVIEW", "REMOVE", id);
     }
 
     /**
@@ -268,6 +259,4 @@ public class ReviewService {
         updateReviewUseful(reviewId, existingRating.get(), false);
         log.info("Удалена оценка отзыва {} пользователем {}", reviewId, userId);
     }
-
-
 }
