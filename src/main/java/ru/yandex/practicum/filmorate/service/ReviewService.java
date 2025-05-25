@@ -117,7 +117,7 @@ public class ReviewService {
                 .timestamp(System.currentTimeMillis())
                 .userId(userId)
                 .eventType("REVIEW")
-                .operation("DELETE")
+                .operation("REMOVE")
                 .entityId(id)
                 .build();
         userFeedStorage.addEvent(event);
