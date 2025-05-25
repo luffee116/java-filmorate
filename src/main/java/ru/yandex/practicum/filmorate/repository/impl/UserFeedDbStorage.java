@@ -20,12 +20,17 @@ public class UserFeedDbStorage implements UserFeedStorage {
             """;
 
     private static final String GET_FEED_BY_USER_ID_QUERY = """
-            SELECT event_id, timestamp, uf.user_id, event_type, operation, entity_id
+            SELECT event_id, timestamp, uf.user_id, event_type, operation, operation, entity_id
             FROM user_feed uf
-            JOIN users u ON uf.user_id = u.id
+            WHERE uf.user_id = ?
+
+            UNION ALL
+
+            SELECT event_id, timestamp, uf.user_id, event_type, operation, operation, entity_id
+            FROM user_feed uf
             WHERE uf.user_id IN (SELECT friend_id FROM user_friends WHERE user_id = ?)
             ORDER BY timestamp DESC
-            """;
+                        """;
 
     @Override
     public void addEvent(UserFeedEvent event) {
