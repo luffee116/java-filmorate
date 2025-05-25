@@ -186,11 +186,10 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
     public List<Film> getAll() {
         Map<Integer, List<Integer>> likes = setUpLikes();
         Map<Integer, List<GenreDto>> genres = setUpGenres();
-        Map<Integer, Map<Integer, String>> reviews = setUpReviews();
 
         List<FilmDto> films = jdbcTemplate.query(GET_ALL_FILMS_QUERY, new FilmRowMapper());
 
-        List<FilmDto> filmsToResponse = addFilmInfo(films, likes, genres, reviews);
+        List<FilmDto> filmsToResponse = addGenresAndLikesToFilmList(films, likes, genres);
         return filmsToResponse.stream().map(FilmMapper::mapToFilm).toList();
     }
 
@@ -236,11 +235,10 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
     public List<Film> getPopularFilm(Integer count) {
         Map<Integer, List<Integer>> likes = setUpLikes();
         Map<Integer, List<GenreDto>> genres = setUpGenres();
-        Map<Integer, Map<Integer, String>> reviews = setUpReviews();
 
         List<FilmDto> films = jdbcTemplate.query(GET_POPULAR_FILM_QUERY, new FilmRowMapper(), count);
 
-        List<FilmDto> filmsToResponse = addFilmInfo(films, likes, genres, reviews);
+        List<FilmDto> filmsToResponse = addGenresAndLikesToFilmList(films, likes, genres);
         return filmsToResponse.stream().map(FilmMapper::mapToFilm).toList();
     }
 
@@ -339,14 +337,12 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
     }
 
     //Наполнение фильма
-    private List<FilmDto> addFilmInfo(List<FilmDto> films,
+    private List<FilmDto> addGenresAndLikesToFilmList(List<FilmDto> films,
                                                       Map<Integer, List<Integer>> likes,
-                                                      Map<Integer, List<GenreDto>> genres,
-                                                      Map<Integer, Map<Integer, String>> reviews) {
+                                                      Map<Integer, List<GenreDto>> genres) {
         films.forEach(filmDto -> {
             filmDto.setGenres(new HashSet<>(genres.getOrDefault(filmDto.getId(), List.of())));
             filmDto.setLikes(new HashSet<>(likes.getOrDefault(filmDto.getId(), List.of())));
-            filmDto.setReview(new HashMap<>(reviews.getOrDefault(filmDto.getId(), Map.of())));
         });
 
         return films;

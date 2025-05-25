@@ -10,6 +10,7 @@ import ru.yandex.practicum.filmorate.service.FilmService;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 @Validated
 @AllArgsConstructor
@@ -66,7 +67,7 @@ public class FilmController {
                           @RequestBody Map<String, String> text) {
         filmService.addReview(filmId, userId, text.get("text"));
     }
-}
+
     /**
      * Удаляет фильм по идентификатору.
      *

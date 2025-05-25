@@ -79,7 +79,6 @@ public class UserController {
     public List<EventDto> getUserFeed(@PathVariable Integer userId) {
         return feedService.getFeedByUserId(userId);
     }
-}
 
     /**
      * Возвращает список рекомендованных фильмов для пользователя по его id.
