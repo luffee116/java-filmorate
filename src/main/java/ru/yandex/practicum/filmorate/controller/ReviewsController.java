@@ -1,9 +1,6 @@
 package ru.yandex.practicum.filmorate.controller;
 
-import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.dto.ReviewDto;
@@ -25,15 +22,8 @@ public class ReviewsController {
      * @param reviewDto данные отзыва
      */
     @PostMapping
-    public ResponseEntity<ReviewDto> addReview(@Valid @RequestBody ReviewDto reviewDto) {
-        try {
-            ReviewDto createdReview = reviewService.createReview(reviewDto);
-            return new ResponseEntity<>(createdReview, HttpStatus.CREATED);
-        } catch (NotFoundException e) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        } catch (Exception e) {
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+    public ReviewDto create(@RequestBody ReviewDto reviewDto) {
+        return reviewService.createReview(reviewDto);
     }
 
     /**
