@@ -20,7 +20,7 @@ public class UserFeedDbStorage implements UserFeedStorage {
             """;
 
     private static final String GET_FEED_BY_USER_ID_QUERY = """
-            SELECT event_id, timestamp, uf.user_id, event_type, operation, operation, entity_id
+            SELECT event_id, timestamp, uf.user_id, event_type, operation, entity_id
             FROM user_feed uf
             WHERE uf.user_id = ?
 
@@ -39,6 +39,18 @@ public class UserFeedDbStorage implements UserFeedStorage {
 
     @Override
     public List<UserFeedEvent> getFeedByUserId(int userId) {
-        return jdbcTemplate.query(GET_FEED_BY_USER_ID_QUERY, (rs, rowNum) -> UserFeedEvent.builder().eventId(rs.getLong("event_id")).timestamp(rs.getLong("timestamp")).userId(rs.getInt("user_id")).eventType(rs.getString("event_type")).operation(rs.getString("operation")).entityId(rs.getInt("entity_id")).build(), userId);
+        return jdbcTemplate.query(
+                GET_FEED_BY_USER_ID_QUERY,
+                (rs, rowNum) -> UserFeedEvent.builder()
+                        .eventId(rs.getLong("event_id"))
+                        .timestamp(rs.getLong("timestamp"))
+                        .userId(rs.getInt("user_id"))
+                        .eventType(rs.getString("event_type"))
+                        .operation(rs.getString("operation"))
+                        .entityId(rs.getInt("entity_id"))
+                        .build(),
+                userId,
+                userId
+        );
     }
 }
