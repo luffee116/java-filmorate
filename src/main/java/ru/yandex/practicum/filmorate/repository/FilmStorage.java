@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.repository;
 
+import ru.yandex.practicum.filmorate.dto.FilmDto;
 import ru.yandex.practicum.filmorate.model.Film;
 
 import java.util.Optional;
@@ -26,4 +27,6 @@ public interface FilmStorage {
     boolean existsById(Integer id);
 
     List<Film> getCommonFilms(Integer userId, Integer friendId);
+
+    List<FilmDto> getPopularFilmsByGenreAndYear(int count, Integer genreId, Integer year);
 }

@@ -11,10 +11,12 @@ import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.dto.FilmDto;
 import ru.yandex.practicum.filmorate.dto.GenreDto;
 import ru.yandex.practicum.filmorate.exeptions.NotFoundException;
+import ru.yandex.practicum.filmorate.mapper.dto.FilmDtoMapper;
 import ru.yandex.practicum.filmorate.mapper.toEntity.FilmMapper;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.repository.FilmStorage;
+import ru.yandex.practicum.filmorate.repository.MpaRatingStorage;
 import ru.yandex.practicum.filmorate.repository.TypeEntity;
 import ru.yandex.practicum.filmorate.rowMappers.FilmRowMapper;
 import ru.yandex.practicum.filmorate.rowMappers.GenreDtoRowMapper;
@@ -26,6 +28,8 @@ import java.util.*;
 @Repository
 @Slf4j
 public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
+    private MpaRatingStorage mpaRatingStorage;
+
     private static final String CREATE_FILM_QUERY = """
             INSERT INTO films (name, description, release_date, duration, mpa_rating_id) VALUES (?, ?, ?, ?, ?);
             """;
@@ -269,6 +273,7 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
             return false;
         }
     }
+
     /**
      * Получает список фильмов, которые понравились как указанному пользователю, так и его другу.
      * Использует SQL-запрос для извлечения общих фильмов, затем обогащает их жанрами и лайками.
@@ -285,6 +290,40 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
         List<FilmDto> filmsToResponse = addGenresAndLikesToFilmList(films, likes, genres);
 
         return filmsToResponse.stream().map(FilmMapper::mapToFilm).toList();
+    }
+
+    @Override
+    public List<FilmDto> getPopularFilmsByGenreAndYear(int count, Integer genreId, Integer year) {
+        String sql = "SELECT f.id, f.name, f.description, f.release_date, f.duration, f.mpa_rating_id, " +
+                "       COUNT(fl.user_id) AS likes_count " +
+                "FROM films f " +
+                "LEFT JOIN film_likes fl ON f.id = fl.film_id " +
+                "LEFT JOIN film_genres fg ON f.id = fg.film_id " +
+                "WHERE 1=1 "; // Условие 1=1 нужно для упрощения добавления динамических условий
+
+        if (genreId != null) {
+            sql += "AND fg.genre_id = " + genreId + " ";
+        }
+
+        if (year != null) {
+            sql += "AND EXTRACT(YEAR FROM f.release_date) = " + year + " ";
+        }
+
+        sql += "GROUP BY f.id " +
+                "ORDER BY likes_count DESC " +
+                "LIMIT " + count;
+
+        return jdbcTemplate.query(sql, (rs, rowNum) -> {
+            Film film = Film.builder()
+                    .id(rs.getInt("id"))
+                    .name(rs.getString("name"))
+                    .description(rs.getString("description"))
+                    .releaseDate(rs.getDate("release_date").toLocalDate())
+                    .duration(rs.getLong("duration"))
+                    .mpa(mpaRatingStorage.getMpaRating(rs.getInt("mpa_rating_id")))
+                    .build();
+            return FilmDtoMapper.mapToFilmDto(film);
+        });
     }
 
     public Set<Integer> getLikedFilmsIds(Integer userId) {

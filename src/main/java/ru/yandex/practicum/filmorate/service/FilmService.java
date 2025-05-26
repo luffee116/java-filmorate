@@ -53,6 +53,10 @@ public class FilmService {
         return FilmDtoMapper.mapToFilmDto(updatedFilm);
     }
 
+    public List<FilmDto> getPopularFilmsByGenreAndYear(int count, Integer genreId, Integer year) {
+        return filmStorage.getPopularFilmsByGenreAndYear(count, genreId, year);
+    }
+
     public List<FilmDto> getAll() {
         log.info("Отправлен список всех фильмов, size: {}", filmStorage.getAll().size());
         List<Film> films = filmStorage.getAll();
