@@ -112,13 +112,13 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
             """;
 
     private static final String GET_POPULAR_FILMS_BY_GENRE_AND_YEAR = """
-             SELECT f.*, m.id AS mpa_id, m.name AS mpa_name, m.description AS mpa_description " +
-             "FROM films f " +
-             "JOIN mpa_rating m ON f.mpa_rating_id = m.id " +
-             "LEFT JOIN film_genres fg ON f.id = fg.film_id " +
-             "WHERE (fg.genre_id = ? OR ?) AND (EXTRACT(YEAR FROM f.release_date) = ? OR ?) " +
-             "ORDER BY (SELECT COUNT(*) FROM film_likes fl WHERE fl.film_id = f.id) DESC " +
-             "LIMIT ?"
+             SELECT f.*, m.id AS mpa_id, m.name AS mpa_name, m.description AS mpa_description
+             FROM films f
+             JOIN mpa_rating m ON f.mpa_rating_id = m.id
+             LEFT JOIN film_genres fg ON f.id = fg.film_id
+             WHERE (fg.genre_id = ? OR ?) AND (EXTRACT(YEAR FROM f.release_date) = ? OR ?)
+             ORDER BY (SELECT COUNT(*) FROM film_likes fl WHERE fl.film_id = f.id) DESC
+             LIMIT ?
              """;
 
     public FilmDbStorage(JdbcTemplate jdbcTemplate) {
