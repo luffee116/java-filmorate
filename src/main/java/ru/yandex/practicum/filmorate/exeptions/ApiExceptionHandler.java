@@ -26,7 +26,7 @@ public class ApiExceptionHandler {
         return new Exception(
                 e.getMessage(),
                 LocalDateTime.now()
-                );
+        );
     }
 
     @ExceptionHandler
