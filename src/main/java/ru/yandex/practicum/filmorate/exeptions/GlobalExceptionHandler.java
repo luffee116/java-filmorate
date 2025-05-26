@@ -36,7 +36,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<ErrorResponse> handleDataIntegrityViolation(DataIntegrityViolationException ex) {
         return ResponseEntity
-                .status(HttpStatus.NOT_FOUND) // 404
+                .status(HttpStatus.BAD_REQUEST) // 404
                 .body(new ErrorResponse("Film not found or invalid data"));
     }
 
