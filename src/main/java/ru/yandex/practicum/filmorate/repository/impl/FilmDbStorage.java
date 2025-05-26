@@ -115,6 +115,16 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
             WHERE user_id = ?;
             """;
 
+    private static final String GET_POPULAR_FILMS_BY_GENRE_AND_YEAR = """
+        SELECT f.*, m.id AS mpa_id, m.name AS mpa_name, m.description AS mpa_description
+        FROM films f
+        JOIN mpa_rating m ON f.mpa_rating_id = m.id
+        LEFT JOIN film_genres fg ON f.id = fg.film_id
+        WHERE (%s OR fg.genre_id = ?) AND (%s OR EXTRACT(YEAR FROM f.release_date) = ?)
+        ORDER BY (SELECT COUNT(*) FROM film_likes fl WHERE fl.film_id = f.id) DESC
+        LIMIT ?
+        """;
+
     public FilmDbStorage(JdbcTemplate jdbcTemplate) {
         super(jdbcTemplate);
     }
@@ -293,37 +303,14 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
     }
 
     @Override
-    public List<FilmDto> getPopularFilmsByGenreAndYear(int count, Integer genreId, Integer year) {
-        String sql = "SELECT f.id, f.name, f.description, f.release_date, f.duration, f.mpa_rating_id, " +
-                "       COUNT(fl.user_id) AS likes_count " +
-                "FROM films f " +
-                "LEFT JOIN film_likes fl ON f.id = fl.film_id " +
-                "LEFT JOIN film_genres fg ON f.id = fg.film_id " +
-                "WHERE 1=1 "; // Условие 1=1 нужно для упрощения добавления динамических условий
+    public List<Film> getPopularFilmsByGenreAndYear(int count, Integer genreId, Integer year) {
+        Map<Integer, List<Integer>> likes = setUpLikes();
+        Map<Integer, List<GenreDto>> genres = setUpGenres();
 
-        if (genreId != null) {
-            sql += "AND fg.genre_id = " + genreId + " ";
-        }
+        List<FilmDto> films = jdbcTemplate.query(GET_POPULAR_FILMS_BY_GENRE_AND_YEAR, new FilmRowMapper(), genreId, year, count);
+        List<FilmDto> filmsToResponse = addGenresAndLikesToFilmList(films, likes, genres);
 
-        if (year != null) {
-            sql += "AND EXTRACT(YEAR FROM f.release_date) = " + year + " ";
-        }
-
-        sql += "GROUP BY f.id " +
-                "ORDER BY likes_count DESC " +
-                "LIMIT " + count;
-
-        return jdbcTemplate.query(sql, (rs, rowNum) -> {
-            Film film = Film.builder()
-                    .id(rs.getInt("id"))
-                    .name(rs.getString("name"))
-                    .description(rs.getString("description"))
-                    .releaseDate(rs.getDate("release_date").toLocalDate())
-                    .duration(rs.getLong("duration"))
-                    .mpa(mpaRatingStorage.getMpaRating(rs.getInt("mpa_rating_id")))
-                    .build();
-            return FilmDtoMapper.mapToFilmDto(film);
-        });
+        return filmsToResponse.stream().map(FilmMapper::mapToFilm).toList();
     }
 
     public Set<Integer> getLikedFilmsIds(Integer userId) {
