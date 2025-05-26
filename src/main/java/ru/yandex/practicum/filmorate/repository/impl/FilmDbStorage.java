@@ -15,7 +15,6 @@ import ru.yandex.practicum.filmorate.mapper.toEntity.FilmMapper;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.repository.FilmStorage;
-import ru.yandex.practicum.filmorate.repository.MpaRatingStorage;
 import ru.yandex.practicum.filmorate.repository.TypeEntity;
 import ru.yandex.practicum.filmorate.rowMappers.FilmRowMapper;
 import ru.yandex.practicum.filmorate.rowMappers.GenreDtoRowMapper;
@@ -27,8 +26,6 @@ import java.util.*;
 @Repository
 @Slf4j
 public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
-    private MpaRatingStorage mpaRatingStorage;
-
     private static final String CREATE_FILM_QUERY = """
             INSERT INTO films (name, description, release_date, duration, mpa_rating_id) VALUES (?, ?, ?, ?, ?);
             """;
