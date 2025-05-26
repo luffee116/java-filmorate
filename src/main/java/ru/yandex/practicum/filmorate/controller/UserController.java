@@ -5,8 +5,10 @@ import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.filmorate.dto.FilmDto;
+import ru.yandex.practicum.filmorate.dto.EventDto;
 import ru.yandex.practicum.filmorate.dto.UserDto;
+import ru.yandex.practicum.filmorate.service.UserFeedService;
+import ru.yandex.practicum.filmorate.dto.FilmDto;
 import ru.yandex.practicum.filmorate.service.RecommendationService;
 import ru.yandex.practicum.filmorate.service.UserService;
 
@@ -18,6 +20,8 @@ import java.util.List;
 @RestController
 @RequestMapping("/users")
 public class UserController {
+
+    private final UserFeedService feedService;
     private final UserService userService;
     private final RecommendationService recommendationService;
 
@@ -69,6 +73,11 @@ public class UserController {
     @GetMapping("/{userId}/friends")
     public List<UserDto> getUserFriends(@PathVariable Integer userId) {
         return userService.getUserFriends(userId);
+    }
+
+    @GetMapping("/{userId}/feed")
+    public List<EventDto> getUserFeed(@PathVariable Integer userId) {
+        return feedService.getFeedByUserId(userId);
     }
 
     /**

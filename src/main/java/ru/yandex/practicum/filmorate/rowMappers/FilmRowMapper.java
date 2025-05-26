@@ -8,12 +8,15 @@ import ru.yandex.practicum.filmorate.dto.MpaDto;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 public class FilmRowMapper implements RowMapper<FilmDto> {
     Set<GenreDto> genres = new HashSet<>();
     Set<Integer> likes = new HashSet<>();
+    Map<Integer, String> reviews = new HashMap<>();
 
     @Override
     public FilmDto mapRow(ResultSet rs, int rowNum) throws SQLException {
@@ -30,6 +33,7 @@ public class FilmRowMapper implements RowMapper<FilmDto> {
                         .build())
                 .genres(genres)
                 .likes(likes)
+                .review(reviews)
                 .build();
     }
 }

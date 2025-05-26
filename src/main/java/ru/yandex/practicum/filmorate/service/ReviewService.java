@@ -10,8 +10,10 @@ import ru.yandex.practicum.filmorate.exeptions.NotFoundException;
 import ru.yandex.practicum.filmorate.mapper.dto.ReviewDtoMapper;
 import ru.yandex.practicum.filmorate.mapper.toEntity.ReviewMapper;
 import ru.yandex.practicum.filmorate.model.Review;
+import ru.yandex.practicum.filmorate.model.UserFeedEvent;
 import ru.yandex.practicum.filmorate.repository.ReviewRatingStorage;
 import ru.yandex.practicum.filmorate.repository.ReviewStorage;
+import ru.yandex.practicum.filmorate.repository.UserFeedStorage;
 
 import java.util.List;
 import java.util.Optional;
@@ -24,6 +26,7 @@ public class ReviewService {
     ReviewRatingStorage reviewRatingStorage;
     FilmService filmService;
     UserService userService;
+    UserFeedStorage userFeedStorage;
 
     /**
      * Конструктор ReviewService
@@ -37,11 +40,13 @@ public class ReviewService {
     public ReviewService(ReviewStorage reviewStorage,
                          ReviewRatingStorage reviewRatingStorage,
                          FilmService filmService,
-                         UserService userService) {
+                         UserService userService,
+                         UserFeedStorage userFeedStorage) {
         this.reviewStorage = reviewStorage;
         this.reviewRatingStorage = reviewRatingStorage;
         this.filmService = filmService;
         this.userService = userService;
+        this.userFeedStorage = userFeedStorage;
     }
 
     /**
@@ -64,6 +69,16 @@ public class ReviewService {
 
         Review request = ReviewMapper.mapToReview(reviewDto);
         Review review = reviewStorage.save(request);
+
+        UserFeedEvent event = UserFeedEvent.builder()
+                .timestamp(System.currentTimeMillis())
+                .userId(review.getUserId())
+                .eventType("REVIEW")
+                .operation("ADD")
+                .entityId(review.getReviewId())
+                .build();
+        userFeedStorage.addEvent(event);
+
         return ReviewDtoMapper.mapToDto(review);
     }
 
@@ -76,6 +91,16 @@ public class ReviewService {
         checkReviewExist(reviewDto.getReviewId());
         Review request = ReviewMapper.mapToReview(reviewDto);
         Review review = reviewStorage.update(request);
+
+        UserFeedEvent event = UserFeedEvent.builder()
+                .timestamp(System.currentTimeMillis())
+                .userId(review.getUserId())
+                .eventType("REVIEW")
+                .operation("UPDATE")
+                .entityId(review.getReviewId())
+                .build();
+        userFeedStorage.addEvent(event);
+
         return ReviewDtoMapper.mapToDto(review);
     }
 
@@ -86,6 +111,17 @@ public class ReviewService {
      */
     public void deleteReview(Integer id) {
         checkReviewExist(id);
+        int userId = reviewStorage.getUserIdByReviewId(id);
+
+        UserFeedEvent event = UserFeedEvent.builder()
+                .timestamp(System.currentTimeMillis())
+                .userId(userId)
+                .eventType("REVIEW")
+                .operation("REMOVE")
+                .entityId(id)
+                .build();
+        userFeedStorage.addEvent(event);
+
         reviewStorage.removeById(id);
     }
 
@@ -259,6 +295,4 @@ public class ReviewService {
         updateReviewUseful(reviewId, existingRating.get(), false);
         log.info("Удалена оценка отзыва {} пользователем {}", reviewId, userId);
     }
-
-
 }

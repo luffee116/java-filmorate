@@ -146,6 +146,15 @@ public class ReviewDbStorage extends BaseDbStorage implements ReviewStorage {
         return Optional.of(review);
     }
 
+    @Override
+    public Integer getUserIdByReviewId(Integer reviewId) {
+        checkEntityExist(reviewId, TypeEntity.REVIEW);
+        Review review = jdbcTemplate.queryForObject(GET_REVIEW_BY_ID_QUERY, new ReviewRowMapper(), reviewId);
+
+        int userId = review.getUserId();
+        return userId;
+    }
+
     /**
      * Получения списка отзывов из БД
      *

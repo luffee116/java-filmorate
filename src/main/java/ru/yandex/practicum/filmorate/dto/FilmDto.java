@@ -9,6 +9,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
+import java.util.Map;
 import java.util.Set;
 
 @Data
@@ -38,6 +39,8 @@ public class FilmDto {
     private Set<GenreDto> genres;
 
     private Set<Integer> likes;
+
+    private Map<Integer, String> review;
 
     @AssertTrue
     public boolean isReleaseDateValid() {
