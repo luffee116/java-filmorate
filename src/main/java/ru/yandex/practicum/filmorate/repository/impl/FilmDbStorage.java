@@ -345,12 +345,42 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
 
     @Override
     public List<Film> getFilmsByDirectorSorted(int directorId, String sortBy) {
-        String sql = GET_FILMS_BY_DIRECTOR_SORTED;
+        String sqlBase = """
+            SELECT f.*, 
+                   m.name AS mpa_name, 
+                   m.description AS mpa_description,
+                   d.id AS director_id, 
+                   d.name AS director_name
+            FROM films f
+            JOIN film_directors fd ON f.id = fd.film_id
+            JOIN directors d ON fd.director_id = d.id
+            LEFT JOIN mpa_rating m ON f.mpa_rating_id = m.id
+            """;
+
+        String sql;
 
         if ("year".equals(sortBy)) {
-            sql += " ORDER BY f.release_date";
+            sql = sqlBase + """
+                LEFT JOIN (
+                    SELECT film_id, COUNT(user_id) AS likes_count
+                    FROM film_likes
+                    GROUP BY film_id
+                ) fl ON f.id = fl.film_id
+                WHERE d.id = ?
+                ORDER BY f.release_date
+                """;
         } else if ("likes".equals(sortBy)) {
-            sql += " " + GET_FILMS_BY_DIRECTOR_SORTED_LIKES;
+            sql = sqlBase + """
+                LEFT JOIN (
+                    SELECT film_id, COUNT(user_id) AS likes_count
+                    FROM film_likes
+                    GROUP BY film_id
+                ) fl ON f.id = fl.film_id
+                WHERE d.id = ?
+                ORDER BY COALESCE(fl.likes_count, 0) DESC
+                """;
+        } else {
+            sql = sqlBase + "WHERE d.id = ?";
         }
 
         List<FilmDto> filmDtos = jdbcTemplate.query(
@@ -361,7 +391,7 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
 
         return filmDtos.stream()
                 .peek(this::addGenresAndLikesToFilm)
-                .peek(this::addDirectorsToFilm)  // Добавляем режиссеров
+                .peek(this::addDirectorsToFilm)
                 .map(FilmMapper::mapToFilm)
                 .toList();
     }
