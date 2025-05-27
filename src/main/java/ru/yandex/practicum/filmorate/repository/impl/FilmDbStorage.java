@@ -53,12 +53,12 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
 
     // SQL queries
     private static final String CREATE_FILM_QUERY = """
-            INSERT INTO films (name, description, release_date, duration, mpa_rating_id) 
+            INSERT INTO films (name, description, release_date, duration, mpa_rating_id)
             VALUES (?, ?, ?, ?, ?);
             """;
 
     private static final String UPDATE_FILM_QUERY = """
-            UPDATE films 
+            UPDATE films
             SET name = ?, description = ?, release_date = ?, duration = ?, mpa_rating_id = ?
             WHERE id = ?;
             """;
@@ -88,10 +88,10 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
 
     private static final String GET_FILMS_BY_DIRECTOR_SORTED_LIKES = """
             LEFT JOIN (
-                SELECT film_id, COUNT(user_id) AS likes_count 
-                FROM film_likes 
+                SELECT film_id, COUNT(user_id) AS likes_count
+                FROM film_likes
                 GROUP BY film_id
-            ) fl ON f.id = fl.film_id 
+            ) fl ON f.id = fl.film_id
             ORDER BY COALESCE(fl.likes_count, 0) DESC
             """;
     private static final String ADD_LIKE_TO_FILM_QUERY = """
