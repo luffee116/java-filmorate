@@ -110,6 +110,29 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
             FROM film_likes
             WHERE user_id = ?;
             """;
+    private static final String BASE_SEARCH_FILM = """
+            SELECT f.*,
+                   mr.id mpa_id,
+                   mr.name mpa_name,
+                   mr.description mpa_description
+            FROM films f
+            JOIN MPA_RATING mr ON f.MPA_RATING_ID = mr.ID
+            LEFT JOIN (SELECT film_id, COUNT(*) AS likes_count
+                       FROM FILM_LIKES
+                       GROUP BY film_id) fl ON f.id = fl.FILM_ID
+            LEFT JOIN FILM_DIRECTORS fd ON f.id = fd.film_id
+            LEFT JOIN directors d ON fd.director_id = d.id
+            WHERE
+            """;
+    private static final String SEARCH_BY_TITLE = """
+            UPPER(f.NAME) LIKE UPPER(?)
+            """;
+    private static final String SEARCH_BY_DIRECTOR = """
+            UPPER(d.NAME) LIKE UPPER(?)
+            """;
+    private static final String SORT_FOR_SEARCH = """
+            ORDER BY likes_count DESC, f.ID;
+            """;
 
     public FilmDbStorage(JdbcTemplate jdbcTemplate) {
         super(jdbcTemplate);
@@ -269,6 +292,7 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
             return false;
         }
     }
+
     /**
      * Получает список фильмов, которые понравились как указанному пользователю, так и его другу.
      * Использует SQL-запрос для извлечения общих фильмов, затем обогащает их жанрами и лайками.
@@ -290,8 +314,44 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
     public Set<Integer> getLikedFilmsIds(Integer userId) {
         return new HashSet<>(jdbcTemplate.queryForList(GET_LIKED_FILMS_BY_USER_ID_QUERY, Integer.class, userId));
     }
-    // ВСПОМОГАТЕЛЬНЫЕ МЕТОДЫ ––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
 
+    @Override
+    public List<Film> search(String query, List<String> by) {
+        Map<Integer, List<Integer>> likes = setUpLikes();
+        Map<Integer, List<GenreDto>> genres = setUpGenres();
+
+        List<FilmDto> searchedFilms = runSearchFilmByQuery(query, by);
+
+        addGenresAndLikesToFilmList(searchedFilms, likes, genres);
+
+        return searchedFilms.stream().map(FilmMapper::mapToFilm).toList();
+    }
+
+    private List<FilmDto> runSearchFilmByQuery(String query, List<String> by) {
+        final String SQLQuery;
+        if (by.contains("director") && by.contains("title")) {
+            SQLQuery = BASE_SEARCH_FILM + SEARCH_BY_TITLE + " OR " + SEARCH_BY_DIRECTOR + SORT_FOR_SEARCH;
+            return jdbcTemplate.query(conntection -> {
+                PreparedStatement statement = conntection.prepareStatement(SQLQuery);
+                statement.setString(1, query);
+                statement.setString(2,  query);
+                return statement;
+            }, new FilmRowMapper());
+        } else if (by.contains("director")) {
+            SQLQuery = BASE_SEARCH_FILM + SEARCH_BY_DIRECTOR + SORT_FOR_SEARCH;
+        } else if (by.contains("title")) {
+            SQLQuery = BASE_SEARCH_FILM + SEARCH_BY_TITLE + SORT_FOR_SEARCH;
+        } else {
+            throw new RuntimeException("Неподходящий параметр запроса");
+        }
+        return jdbcTemplate.query(connection ->{
+            PreparedStatement statement = connection.prepareStatement(SQLQuery);
+            statement.setString(1, "%" + query + "%");
+            return statement;
+        }, new FilmRowMapper());
+    }
+
+    // ВСПОМОГАТЕЛЬНЫЕ МЕТОДЫ ––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
     // Добавление жанров
 
     private void addFilmGenres(Set<Genre> genresSet, int id) {

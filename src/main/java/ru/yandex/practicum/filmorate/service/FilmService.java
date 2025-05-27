@@ -147,4 +147,22 @@ public class FilmService {
             return new NotFoundException(message);
         });
     }
+
+    /**
+     * Отправляет список фильмов по подстроке
+     * <p>
+     *
+     * @param stringForSearch подстрока для поиска
+     * @param by параметры поиска
+     */
+    public List<FilmDto> searchFilms(String stringForSearch, List<String> by) {
+        if (by.isEmpty()) {
+            throw new RuntimeException("Параметры поиска не указаны");
+        }
+        List<Film> response = filmStorage.search(stringForSearch, by);
+        return filmStorage.search(stringForSearch, by)
+                .stream()
+                .map(FilmDtoMapper::mapToFilmDto)
+                .toList();
+    }
 }
