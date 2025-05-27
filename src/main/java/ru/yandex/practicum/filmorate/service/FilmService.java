@@ -147,6 +147,7 @@ public class FilmService {
             return new NotFoundException(message);
         });
     }
+
     public List<Film> getFilmsByDirectorSorted(int directorId, String sortBy) {
         return filmStorage.getFilmsByDirectorSorted(directorId, sortBy);
     }

@@ -6,8 +6,12 @@ import java.util.List;
 
 public interface DirectorService {
     Director create(Director director);
+
     Director update(Director director);
+
     void delete(int id);
+
     Director get(int id);
+
     List<Director> getAll();
 }

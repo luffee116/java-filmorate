@@ -31,7 +31,7 @@ public class DirectorServiceImpl implements DirectorService {
     @Override
     public Director get(int id) {
         return storage.getById(id)
-            .orElseThrow(() -> new NotFoundException("Режиссёр с id=" + id + " не найден."));
+                .orElseThrow(() -> new NotFoundException("Режиссёр с id=" + id + " не найден."));
     }
 
     @Override
