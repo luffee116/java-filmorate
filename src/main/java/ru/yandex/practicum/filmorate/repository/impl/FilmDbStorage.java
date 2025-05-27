@@ -346,10 +346,10 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
     @Override
     public List<Film> getFilmsByDirectorSorted(int directorId, String sortBy) {
         String sqlBase = """
-            SELECT f.*, 
-                   m.name AS mpa_name, 
+            SELECT f.*,
+                   m.name AS mpa_name,
                    m.description AS mpa_description,
-                   d.id AS director_id, 
+                   d.id AS director_id,
                    d.name AS director_name
             FROM films f
             JOIN film_directors fd ON f.id = fd.film_id
