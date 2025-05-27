@@ -6,6 +6,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.dto.FilmDto;
+import ru.yandex.practicum.filmorate.exeptions.ValidationException;
 import ru.yandex.practicum.filmorate.service.FilmService;
 
 import java.util.Collection;
@@ -89,8 +90,12 @@ public class FilmController {
     @GetMapping("/director/{directorId}")
     public List<FilmDto> getFilmsByDirector(
             @PathVariable int directorId,
-            @RequestParam String sortBy
-    ) {
+            @RequestParam String sortBy) {
+
+        if (!"year".equals(sortBy) && !"likes".equals(sortBy)) {
+            throw new ValidationException("Параметр sortBy может быть только 'year' или 'likes'");
+        }
+
         return filmService.getFilmsByDirectorSorted(directorId, sortBy);
     }
 }

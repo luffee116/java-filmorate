@@ -78,4 +78,11 @@ public class DirectorDbStorage extends BaseDbStorage implements DirectorStorage 
         return jdbcTemplate.query("SELECT id, name FROM directors", (rs, rowNum) ->
                 new Director(rs.getInt("id"), rs.getString("name")));
     }
+
+    @Override
+    public boolean existsById(int id) {
+        String sql = "SELECT COUNT(*) FROM directors WHERE id = ?";
+        Integer count = jdbcTemplate.queryForObject(sql, Integer.class, id);
+        return count != null && count > 0;
+    }
 }

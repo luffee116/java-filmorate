@@ -7,8 +7,10 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import ru.yandex.practicum.filmorate.model.Director;
 
 import java.time.LocalDate;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -42,8 +44,7 @@ public class FilmDto {
 
     private Map<Integer, String> review;
 
-    @AssertTrue
-    public boolean isReleaseDateValid() {
-        return releaseDate != null && releaseDate.isAfter(LocalDate.of(1950, 12, 28));
-    }
+    @Builder.Default
+    private Set<Director> directors = new HashSet<>();
+
 }

@@ -20,4 +20,6 @@ public interface DirectorStorage {
     void setDirectorsForFilm(Film film); // Добавить режиссёров к фильму
 
     void clearDirectorsForFilm(int filmId); // Очистить режиссёров фильма
+
+    boolean existsById(int id);
 }

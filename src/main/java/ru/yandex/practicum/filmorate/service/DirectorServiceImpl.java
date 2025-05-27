@@ -20,6 +20,9 @@ public class DirectorServiceImpl implements DirectorService {
 
     @Override
     public Director update(Director director) {
+        if (!storage.existsById(director.getId())) {
+            throw new NotFoundException("Режиссёр с id=" + director.getId() + " не найден");
+        }
         return storage.update(director);
     }
 
