@@ -80,8 +80,8 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
             SELECT f.*, m.name AS mpa_name, m.description AS mpa_description,
                    d.id AS director_id, d.name AS director_name
             FROM films f
-            JOIN film_directors fd ON f.id = fd.film_id
-            JOIN directors d ON fd.director_id = d.id
+            JOIN film_director fd ON f.id = fd.film_id
+            JOIN director d ON fd.director_id = d.id
             LEFT JOIN mpa_rating m ON f.mpa_rating_id = m.id
             WHERE d.id = ?
             """;
@@ -352,8 +352,8 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
                    d.id AS director_id,
                    d.name AS director_name
             FROM films f
-            JOIN film_directors fd ON f.id = fd.film_id
-            JOIN directors d ON fd.director_id = d.id
+            JOIN film_director fd ON f.id = fd.film_id
+            JOIN director d ON fd.director_id = d.id
             LEFT JOIN mpa_rating m ON f.mpa_rating_id = m.id
             """;
 
@@ -427,7 +427,7 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
 
     private void addDirectorsToFilm(FilmDto filmDto) {
         List<Director> directors = jdbcTemplate.query(
-                "SELECT d.* FROM directors d JOIN film_directors fd ON d.id = fd.director_id WHERE fd.film_id = ?",
+                "SELECT d.* FROM director d JOIN film_director fd ON d.id = fd.director_id WHERE fd.film_id = ?",
                 (rs, rowNum) -> new Director(
                         rs.getInt("id"),
                         rs.getString("name")
@@ -454,7 +454,7 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
 
     private List<Integer> getDirectorsForFilm(int filmId) {
         return jdbcTemplate.queryForList(
-                "SELECT director_id FROM film_directors WHERE film_id = ?",
+                "SELECT director_id FROM film_director WHERE film_id = ?",
                 Integer.class,
                 filmId
         );
@@ -575,7 +575,7 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
 
     private Map<Integer, List<Director>> setUpDirectors() {
         return jdbcTemplate.query(
-                "SELECT fd.film_id, d.* FROM film_directors fd JOIN directors d ON fd.director_id = d.id",
+                "SELECT fd.film_id, d.* FROM film_director fd JOIN director d ON fd.director_id = d.id",
                 rs -> {
                     Map<Integer, List<Director>> map = new HashMap<>();
                     while (rs.next()) {

@@ -56,18 +56,18 @@ public class DirectorDbStorage extends BaseDbStorage implements DirectorStorage 
 
     @Override
     public Director update(Director director) {
-        jdbcTemplate.update("UPDATE directors SET name = ? WHERE id = ?", director.getName(), director.getId());
+        jdbcTemplate.update("UPDATE director SET name = ? WHERE id = ?", director.getName(), director.getId());
         return director;
     }
 
     @Override
     public void delete(int id) {
-        jdbcTemplate.update("DELETE FROM directors WHERE id = ?", id);
+        jdbcTemplate.update("DELETE FROM director WHERE id = ?", id);
     }
 
     @Override
     public Optional<Director> getById(int id) {
-        String sql = "SELECT id, name FROM directors WHERE id = ?";
+        String sql = "SELECT id, name FROM director WHERE id = ?";
         List<Director> list = jdbcTemplate.query(sql, (rs, rowNum) ->
                 new Director(rs.getInt("id"), rs.getString("name")), id);
         return list.stream().findFirst();
@@ -75,13 +75,13 @@ public class DirectorDbStorage extends BaseDbStorage implements DirectorStorage 
 
     @Override
     public List<Director> getAll() {
-        return jdbcTemplate.query("SELECT id, name FROM directors", (rs, rowNum) ->
+        return jdbcTemplate.query("SELECT id, name FROM director", (rs, rowNum) ->
                 new Director(rs.getInt("id"), rs.getString("name")));
     }
 
     @Override
     public boolean existsById(int id) {
-        String sql = "SELECT COUNT(*) FROM directors WHERE id = ?";
+        String sql = "SELECT COUNT(*) FROM director WHERE id = ?";
         Integer count = jdbcTemplate.queryForObject(sql, Integer.class, id);
         return count != null && count > 0;
     }

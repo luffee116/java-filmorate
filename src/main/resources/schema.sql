@@ -101,6 +101,6 @@ CREATE TABLE IF NOT EXISTS director (
 
 CREATE TABLE IF NOT EXISTS film_director (
    film_id INT NOT NULL REFERENCES films(id) ON DELETE CASCADE,
-   director_id INT NOT NULL REFERENCES directors(id) ON DELETE CASCADE,
+   director_id INT NOT NULL REFERENCES director(id) ON DELETE CASCADE,
    PRIMARY KEY (film_id, director_id)
 );
