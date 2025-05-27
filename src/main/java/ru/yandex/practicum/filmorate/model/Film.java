@@ -25,6 +25,7 @@ public class Film {
     private Long duration;
     private Set<Genre> genres;
     private MpaRating mpa;
+    @Builder.Default
     private Set<Integer> likes = new HashSet<>();
     private Map<Integer, String> review;
     private Set<Director> directors = new HashSet<>();

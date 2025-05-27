@@ -148,7 +148,11 @@ public class FilmService {
         });
     }
 
-    public List<Film> getFilmsByDirectorSorted(int directorId, String sortBy) {
-        return filmStorage.getFilmsByDirectorSorted(directorId, sortBy);
+    public List<FilmDto> getFilmsByDirectorSorted(int directorId, String sortBy) {
+        List<Film> films = filmStorage.getFilmsByDirectorSorted(directorId, sortBy);
+        log.info("Получено {} фильмов режиссёра с id={} с сортировкой по {}", films.size(), directorId, sortBy);
+        return films.stream()
+                .map(FilmDtoMapper::mapToFilmDto)
+                .toList();
     }
 }
