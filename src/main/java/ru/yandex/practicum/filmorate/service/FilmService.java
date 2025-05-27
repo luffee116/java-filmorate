@@ -54,7 +54,7 @@ public class FilmService {
     }
 
     public List<FilmDto> getPopularFilmsByGenreAndYear(int count, Integer genreId, Integer year) {
-       List<Film> popularFilms = filmStorage.getPopularFilmsByGenreAndYear(count, genreId, year);
+        List<Film> popularFilms = filmStorage.getPopularFilmsByGenreAndYear(count, genreId, year);
         return popularFilms.stream().map(FilmDtoMapper::mapToFilmDto).toList();
     }
 
