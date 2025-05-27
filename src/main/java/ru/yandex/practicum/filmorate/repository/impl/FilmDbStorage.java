@@ -5,8 +5,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
-import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
@@ -118,10 +116,9 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
             FROM films f
             JOIN mpa_rating m ON f.mpa_rating_id = m.id
             LEFT JOIN film_genres fg ON f.id = fg.film_id
-            WHERE (genreId IS NULL OR fg.genre_id = genreId)
-              AND (year IS NULL OR EXTRACT(YEAR FROM f.release_date) = year)
+            WHERE (fg.genre_id = ? OR ?) AND (EXTRACT(YEAR FROM f.release_date) = ? OR ?)
             ORDER BY (SELECT COUNT(*) FROM film_likes fl WHERE fl.film_id = f.id) DESC
-            LIMIT count
+            LIMIT ?
             """;
 
     public FilmDbStorage(JdbcTemplate jdbcTemplate) {
@@ -306,19 +303,20 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
         Map<Integer, List<Integer>> likes = setUpLikes();
         Map<Integer, List<GenreDto>> genres = setUpGenres();
 
-        NamedParameterJdbcTemplate namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(jdbcTemplate.getDataSource());
+        String sql = GET_POPULAR_FILMS_BY_GENRE_AND_YEAR;
 
-        MapSqlParameterSource parameters = new MapSqlParameterSource();
-        parameters.addValue("genreId", genreId);
-        parameters.addValue("year", year);
-        parameters.addValue("count", count);
+        List<FilmDto> films;
+        try {
+            films = jdbcTemplate.query(sql, new FilmRowMapper(), genreId, genreId == null, year, year == null, count);
+        } catch (DataAccessException e) {
+            System.err.println("Ошибка при выполнении запроса: " + e.getMessage());
+            return Collections.emptyList();
+        }
 
-        List<FilmDto> films = namedParameterJdbcTemplate.query(GET_POPULAR_FILMS_BY_GENRE_AND_YEAR, parameters, new FilmRowMapper());
         List<FilmDto> filmsToResponse = addGenresAndLikesToFilmList(films, likes, genres);
 
         return filmsToResponse.stream().map(FilmMapper::mapToFilm).toList();
     }
-
 
     public Set<Integer> getLikedFilmsIds(Integer userId) {
         return new HashSet<>(jdbcTemplate.queryForList(GET_LIKED_FILMS_BY_USER_ID_QUERY, Integer.class, userId));
