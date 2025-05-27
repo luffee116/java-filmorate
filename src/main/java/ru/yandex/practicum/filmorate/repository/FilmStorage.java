@@ -26,4 +26,10 @@ public interface FilmStorage {
     boolean existsById(Integer id);
 
     List<Film> getCommonFilms(Integer userId, Integer friendId);
+
+    Film createFilm(Film film);
+
+    Film updateFilm(Film film);
+
+    List<Film> getFilmsByDirectorSorted(int directorId, String sortBy);
 }

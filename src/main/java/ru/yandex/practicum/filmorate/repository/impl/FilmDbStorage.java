@@ -2,30 +2,50 @@ package ru.yandex.practicum.filmorate.repository.impl;
 
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.dto.FilmDto;
 import ru.yandex.practicum.filmorate.dto.GenreDto;
 import ru.yandex.practicum.filmorate.exeptions.NotFoundException;
+import ru.yandex.practicum.filmorate.exeptions.ValidationException;
 import ru.yandex.practicum.filmorate.mapper.toEntity.FilmMapper;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
+import ru.yandex.practicum.filmorate.repository.DirectorStorage;
 import ru.yandex.practicum.filmorate.repository.FilmStorage;
+import ru.yandex.practicum.filmorate.repository.GenreStorage;
 import ru.yandex.practicum.filmorate.repository.TypeEntity;
 import ru.yandex.practicum.filmorate.rowMappers.FilmRowMapper;
 import ru.yandex.practicum.filmorate.rowMappers.GenreDtoRowMapper;
 
 import java.sql.Date;
 import java.sql.PreparedStatement;
+import java.sql.Statement;
 import java.util.*;
+
 
 @Repository
 @Slf4j
 public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
+
+    private GenreStorage genreStorage;
+    private DirectorStorage directorStorage;
+
+    @Autowired
+    public FilmDbStorage(JdbcTemplate jdbcTemplate,
+                         GenreStorage genreStorage,
+                         DirectorStorage directorStorage) {
+        super(jdbcTemplate); // вызывает конструктор BaseDbStorage
+        this.genreStorage = genreStorage;
+        this.directorStorage = directorStorage;
+    }
+
     private static final String CREATE_FILM_QUERY = """
             INSERT INTO films (name, description, release_date, duration, mpa_rating_id) VALUES (?, ?, ?, ?, ?);
             """;
@@ -269,6 +289,7 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
             return false;
         }
     }
+
     /**
      * Получает список фильмов, которые понравились как указанному пользователю, так и его другу.
      * Использует SQL-запрос для извлечения общих фильмов, затем обогащает их жанрами и лайками.
@@ -289,6 +310,33 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
 
     public Set<Integer> getLikedFilmsIds(Integer userId) {
         return new HashSet<>(jdbcTemplate.queryForList(GET_LIKED_FILMS_BY_USER_ID_QUERY, Integer.class, userId));
+    }
+
+    @Override
+    public List<Film> getFilmsByDirectorSorted(int directorId, String sortBy) {
+        String sql;
+
+        switch (sortBy) {
+            case "year" -> sql = """
+                        SELECT f.* FROM films f
+                        JOIN film_director fd ON f.id = fd.film_id
+                        WHERE fd.director_id = ?
+                        ORDER BY f.release_date
+                    """;
+
+            case "likes" -> sql = """
+                        SELECT f.* FROM films f
+                        LEFT JOIN film_likes fl ON f.id = fl.film_id
+                        JOIN film_director fd ON f.id = fd.film_id
+                        WHERE fd.director_id = ?
+                        GROUP BY f.id
+                        ORDER BY COUNT(fl.user_id) DESC
+                    """;
+
+            default -> throw new ValidationException("Некорректный параметр сортировки: " + sortBy);
+        }
+
+        return jdbcTemplate.query(sql, filmRowMapper, directorId);
     }
     // ВСПОМОГАТЕЛЬНЫЕ МЕТОДЫ ––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
 
@@ -389,4 +437,69 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
         });
         return filmLikes;
     }
+
+    /**
+     * Добавление нового фильма с сохранением жанров и режиссёров.
+     */
+    @Override
+    public Film createFilm(Film film) {
+        String sql = "INSERT INTO films(name, description, release_date, duration, mpa_id) VALUES (?, ?, ?, ?, ?)";
+        KeyHolder keyHolder = new GeneratedKeyHolder();
+
+        jdbcTemplate.update(connection -> {
+            PreparedStatement stmt = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+            stmt.setString(1, film.getName());
+            stmt.setString(2, film.getDescription());
+            stmt.setDate(3, Date.valueOf(film.getReleaseDate()));
+            stmt.setLong(4, film.getDuration());
+            stmt.setInt(5, film.getMpa().getId());
+            return stmt;
+        }, keyHolder);
+
+        int filmId = keyHolder.getKey().intValue();
+        film.setId(filmId);
+
+        genreStorage.setGenresForFilm(film);
+        directorStorage.setDirectorsForFilm(film);
+
+        return film;
+    }
+
+    /**
+     * Обновление фильма с очисткой и повторной установкой жанров и режиссёров.
+     */
+    @Override
+    public Film updateFilm(Film film) {
+        String sql = "UPDATE films SET name = ?, description = ?, release_date = ?, duration = ?, mpa_id = ? WHERE id = ?";
+        jdbcTemplate.update(sql,
+                film.getName(),
+                film.getDescription(),
+                Date.valueOf(film.getReleaseDate()),
+                film.getDuration(),
+                film.getMpa().getId(),
+                film.getId());
+
+        genreStorage.clearGenresForFilm(film.getId());
+        genreStorage.setGenresForFilm(film);
+
+        directorStorage.clearDirectorsForFilm(film.getId());
+        directorStorage.setDirectorsForFilm(film);
+
+        return film;
+    }
+
+    /**
+     * Маппер строк результата запроса в объект Film (без жанров и режиссёров).
+     */
+    private final RowMapper<Film> filmRowMapper = (rs, rowNum) -> {
+        Film film = new Film();
+        film.setId(rs.getInt("id"));
+        film.setName(rs.getString("name"));
+        film.setDescription(rs.getString("description"));
+        film.setReleaseDate(rs.getDate("release_date").toLocalDate());
+        film.setDuration(rs.getLong("duration"));
+        // Здесь можно дополнить MPA, жанрами, режиссёрами — если необходимо
+        return film;
+    };
+
 }

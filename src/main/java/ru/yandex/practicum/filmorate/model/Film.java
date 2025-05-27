@@ -27,4 +27,5 @@ public class Film {
     private MpaRating mpa;
     private Set<Integer> likes = new HashSet<>();
     private Map<Integer, String> review;
+    private Set<Director> directors = new HashSet<>();
 }
