@@ -43,6 +43,6 @@ public class GlobalExceptionHandler {
     @Data
     @AllArgsConstructor
     public static class ErrorResponse {
-        private String message;
+        private String error;
     }
 }
