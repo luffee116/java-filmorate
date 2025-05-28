@@ -94,7 +94,7 @@ public class FilmController {
         return filmService.getFilmsDirector(id, sortBy);
     }
 
-    @GetMapping("/popular")
+    @GetMapping("/AllPopular")
     public List<FilmDto> getPopularFilmsByGenreAndYear(
             @RequestParam(name = "count", required = false, defaultValue = "10") int count,
             @RequestParam(name = "genreId", required = false) Integer genreId,

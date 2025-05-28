@@ -52,7 +52,7 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
                    mr.description mpa_description,
                    fl.likes_count
             FROM films f
-            JOIN review_ratings mr ON f.mpa_rating_id = mr.id
+            JOIN MPA_RATING mr ON f.mpa_rating_id = mr.id
             LEFT JOIN (
                 SELECT film_id, COUNT(*) AS likes_count
                 FROM film_likes
@@ -430,8 +430,8 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
             SQLQuery = BASE_SEARCH_FILM + SEARCH_BY_TITLE + " OR " + SEARCH_BY_DIRECTOR + SORT_FOR_SEARCH;
             return jdbcTemplate.query(conntection -> {
                 PreparedStatement statement = conntection.prepareStatement(SQLQuery);
-                statement.setString(1, query);
-                statement.setString(2,  query);
+                statement.setString(1, "%" + query + "%");
+                statement.setString(2,  "%" + query + "%");
                 return statement;
             }, new FilmRowMapper());
         } else if (by.contains("director")) {
