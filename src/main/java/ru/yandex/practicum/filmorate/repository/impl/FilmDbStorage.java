@@ -166,7 +166,9 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
             SELECT f.*,
                    mr.id mpa_id,
                    mr.name mpa_name,
-                   mr.description mpa_description
+                   mr.description mpa_description,
+                   d.ID  AS director_id,
+                   d.NAME AS director_name
             FROM films f
             JOIN MPA_RATING mr ON f.MPA_RATING_ID = mr.ID
             LEFT JOIN (SELECT film_id, COUNT(*) AS likes_count
@@ -236,6 +238,7 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
 
         // Сохранение жанров фильма в БД
         addFilmGenres(film.getGenres(), filmId);
+        saveFilmDirectors(film.getId().longValue(), film.getDirectors());
         log.info("Film created: {}", filmId);
 
         return film;
@@ -381,9 +384,10 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
     public List<Film> getCommonFilms(Integer userId, Integer friendId) {
         Map<Integer, List<Integer>> likes = setUpLikes();
         Map<Integer, List<GenreDto>> genres = setUpGenres();
+        Map<Integer, Set<DirectorDto>> directors = setUpDirectors();
 
         List<FilmDto> films = jdbcTemplate.query(GET_COMMON_FILMS, new FilmRowMapper(), userId, friendId);
-        List<FilmDto> filmsToResponse = addGenresAndLikesToFilmList(films, likes, genres);
+        List<FilmDto> filmsToResponse = addGenresAndLikesToFilmList(films, likes, genres, directors);
 
         return filmsToResponse.stream().map(FilmMapper::mapToFilm).toList();
     }
@@ -392,6 +396,7 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
     public List<Film> getPopularFilmsByGenreAndYear(int count, Integer genreId, Integer year) {
         Map<Integer, List<Integer>> likes = setUpLikes();
         Map<Integer, List<GenreDto>> genres = setUpGenres();
+        Map<Integer, Set<DirectorDto>> directors = setUpDirectors();
 
         String sql = GET_POPULAR_FILMS_BY_GENRE_AND_YEAR;
 
@@ -403,7 +408,7 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
             return Collections.emptyList();
         }
 
-        List<FilmDto> filmsToResponse = addGenresAndLikesToFilmList(films, likes, genres);
+        List<FilmDto> filmsToResponse = addGenresAndLikesToFilmList(films, likes, genres, directors);
 
         return filmsToResponse.stream().map(FilmMapper::mapToFilm).toList();
     }
@@ -416,10 +421,11 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
     public List<Film> search(String query, List<String> by) {
         Map<Integer, List<Integer>> likes = setUpLikes();
         Map<Integer, List<GenreDto>> genres = setUpGenres();
+        Map<Integer, Set<DirectorDto>> directors = setUpDirectors();
 
         List<FilmDto> searchedFilms = runSearchFilmByQuery(query, by);
 
-        addGenresAndLikesToFilmList(searchedFilms, likes, genres);
+        addGenresAndLikesToFilmList(searchedFilms, likes, genres, directors);
 
         return searchedFilms.stream().map(FilmMapper::mapToFilm).toList();
     }
@@ -501,10 +507,12 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
     //Наполнение фильма
     private List<FilmDto> addGenresAndLikesToFilmList(List<FilmDto> films,
                                                       Map<Integer, List<Integer>> likes,
-                                                      Map<Integer, List<GenreDto>> genres) {
+                                                      Map<Integer, List<GenreDto>> genres,
+                                                      Map<Integer, Set<DirectorDto>> directors) {
         films.forEach(filmDto -> {
             filmDto.setGenres(new HashSet<>(genres.getOrDefault(filmDto.getId(), List.of())));
             filmDto.setLikes(new HashSet<>(likes.getOrDefault(filmDto.getId(), List.of())));
+            filmDto.setDirectors(new HashSet<>(directors.getOrDefault(filmDto.getId(), Set.of())));
         });
 
         return films;
@@ -546,6 +554,30 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
             return genres;
         });
         return filmGenres;
+    }
+
+    private Map<Integer, Set<DirectorDto>> setUpDirectors() {
+        String sql = """
+                SELECT fd.film_id,
+                       d.NAME AS director_name,
+                       d.ID AS director_id
+                FROM FILM_DIRECTORS fd
+                JOIN DIRECTORS d ON fd.DIRECTOR_ID = d.ID
+                """;
+
+        Map<Integer, Set<DirectorDto>> filmDirectors = jdbcTemplate.query(sql, rs -> {
+            Map<Integer, Set<DirectorDto>> directors = new HashMap<>();
+            while (rs.next()) {
+                Integer filmId = rs.getInt("film_id");
+                directors.computeIfAbsent(filmId, k -> new HashSet<>())
+                        .add(DirectorDto.builder()
+                                .id(rs.getLong("director_id"))
+                                .name(rs.getString("director_name"))
+                                .build());
+            }
+            return directors;
+        });
+        return filmDirectors;
     }
 
     private Map<Integer, List<Integer>> setUpLikes() {
