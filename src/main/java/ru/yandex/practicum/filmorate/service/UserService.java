@@ -37,8 +37,8 @@ public class UserService {
 
     public UserDto addUser(UserDto user) {
         User user1 = UserMapper.mapToUser(user);
-        if (user.getName().isBlank()) {
-            user.setName(user.getLogin());
+        if (user1.getName().isBlank()) {
+            user1.setName(user1.getLogin());
         }
         User response = userStorage.addUser(user1);
         log.info("Добавлен новый пользователь с id:{}", response.getId());
