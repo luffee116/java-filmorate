@@ -153,7 +153,7 @@ public class FilmService {
         });
     }
 
-    public Collection<Film> getFilmsDirector(Long id, String sortBy) {
-        return filmStorage.getFilmsDirector(id, sortBy);
+    public Collection<FilmDto> getFilmsDirector(Long id, String sortBy) {
+        return filmStorage.getFilmsDirector(id, sortBy).stream().map(FilmDtoMapper::mapToFilmDto).toList();
     }
 }

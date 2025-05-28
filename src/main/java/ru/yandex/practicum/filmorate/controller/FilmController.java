@@ -87,7 +87,7 @@ public class FilmController {
         return filmService.getCommonFilms(userId, friendId);
     }
     @GetMapping("/director/{id}")
-    public Collection<Film> getFilmsDirector(
+    public Collection<FilmDto> getFilmsDirector(
             @PathVariable Long id,
             @RequestParam(defaultValue = "year") String sortBy
     ) {
