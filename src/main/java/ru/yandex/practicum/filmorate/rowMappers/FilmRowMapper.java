@@ -20,9 +20,9 @@ public class FilmRowMapper implements RowMapper<FilmDto> {
                 .build();
 
         return FilmDto.builder()
-                .id(rs.getInt("id"))
-                .name(rs.getString("name"))
-                .description(rs.getString("description"))
+                .id(rs.getInt("film_id"))
+                .name(rs.getString("film_name"))
+                .description(rs.getString("film_description"))
                 .releaseDate(rs.getDate("release_date").toLocalDate())
                 .duration(rs.getLong("duration"))
                 .mpa(mpa)
