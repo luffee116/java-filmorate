@@ -5,7 +5,6 @@ import ru.yandex.practicum.filmorate.dto.FilmDto;
 import ru.yandex.practicum.filmorate.dto.GenreDto;
 import ru.yandex.practicum.filmorate.dto.MpaDto;
 
-
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashMap;

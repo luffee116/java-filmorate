@@ -10,7 +10,7 @@ import ru.yandex.practicum.filmorate.exeptions.FilmUpdateException;
 import ru.yandex.practicum.filmorate.exeptions.NotFoundException;
 import ru.yandex.practicum.filmorate.exeptions.LikeException;
 import ru.yandex.practicum.filmorate.mapper.dto.FilmDtoMapper;
-import ru.yandex.practicum.filmorate.mapper.toEntity.FilmMapper1;
+import ru.yandex.practicum.filmorate.mapper.toEntity.FilmMapper;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.repository.FilmStorage;
 import ru.yandex.practicum.filmorate.repository.impl.FilmDbStorage;
@@ -39,7 +39,7 @@ public class FilmService {
     }
 
     public FilmDto create(FilmDto requestFilm) {
-        Film request = FilmMapper1.mapToFilm(requestFilm);
+        Film request = FilmMapper.mapToFilm(requestFilm);
         Film film = filmDbStorage.create(request);
         log.info("Создание фильма с id: {}", requestFilm.getId());
         return FilmDtoMapper.mapToFilmDto(film);
@@ -53,7 +53,7 @@ public class FilmService {
         }
 
         // 2. Обновляем фильм
-        Film film = FilmMapper1.mapToFilm(filmDto);
+        Film film = FilmMapper.mapToFilm(filmDto);
         Film updatedFilm = filmDbStorage.update(film);
         return FilmDtoMapper.mapToFilmDto(updatedFilm);
     }

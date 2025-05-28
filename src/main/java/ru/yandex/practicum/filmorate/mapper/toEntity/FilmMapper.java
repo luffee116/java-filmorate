@@ -5,50 +5,24 @@ import ru.yandex.practicum.filmorate.model.Film;
 
 import java.util.stream.Collectors;
 
-public final class FilmMapper {
+public class FilmMapper {
     public static Film mapToFilm(FilmDto filmDto) {
-        Film.FilmBuilder builder = Film.builder()
-                .id(filmDto.getId())
-                .name(filmDto.getName())
-                .description(filmDto.getDescription())
-                .mpa(MpaRatingMapper.mapToRating(filmDto.getMpa()))
-                .duration(filmDto.getDuration())
-                .releaseDate(filmDto.getReleaseDate())
-                .directors(filmDto.getDirectors().stream()
-                        .map(DirectorMapper::toDirector)
-                        .collect(Collectors.toSet()))
-                .likes(filmDto.getLikes())
-                .review(filmDto.getReview());
+        Film film = new Film();
 
-        if (filmDto.getGenres() != null) {
-            builder.genres(filmDto.getGenres()
-                    .stream()
-                    .map(GenreMapper::mapToGenre)
-                    .collect(Collectors.toSet()));
-        }
+        film.setId(filmDto.getId());
+        film.setName(filmDto.getName());
+        film.setDescription(filmDto.getDescription());
+        film.setReleaseDate(filmDto.getReleaseDate());
+        film.setDuration(filmDto.getDuration());
+        film.setMpa(MpaRatingMapper.mapToRating(filmDto.getMpa()));
+        film.setGenres(filmDto.getGenres().stream()
+                        .map(GenreMapper::mapToGenre)
+                        .collect(Collectors.toSet()));
+        film.setDirectors(filmDto.getDirectors().stream()
+                .map(DirectorMapper::toDirector)
+                .collect(Collectors.toSet()));
+        film.setLikes(filmDto.getLikes());
 
-        return builder.build();
-    }
-
-    public static Film updateFilm(FilmDto filmDto, Film film) {
-        if (!filmDto.getName().isBlank()) {
-            film.setName(filmDto.getName());
-        }
-        if (!filmDto.getDescription().isBlank()) {
-            film.setDescription(filmDto.getDescription());
-        }
-        if (filmDto.getMpa() != null) {
-            film.setMpa(MpaRatingMapper.mapToRating(filmDto.getMpa()));
-        }
-        if (filmDto.getDuration() != null) {
-            film.setDuration(filmDto.getDuration());
-        }
-        if (filmDto.getGenres() != null) {
-            film.setGenres(GenreMapper.mapToGenres(filmDto.getGenres()));
-        }
-        if (filmDto.getReleaseDate() != null) {
-            film.setReleaseDate(filmDto.getReleaseDate());
-        }
         return film;
     }
 }

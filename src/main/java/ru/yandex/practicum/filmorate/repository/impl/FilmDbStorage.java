@@ -12,7 +12,7 @@ import ru.yandex.practicum.filmorate.dto.DirectorDto;
 import ru.yandex.practicum.filmorate.dto.FilmDto;
 import ru.yandex.practicum.filmorate.dto.GenreDto;
 import ru.yandex.practicum.filmorate.exeptions.NotFoundException;
-import ru.yandex.practicum.filmorate.mapper.toEntity.FilmMapper1;
+import ru.yandex.practicum.filmorate.mapper.toEntity.FilmMapper;
 import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
@@ -52,7 +52,7 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
                    mr.description mpa_description,
                    fl.likes_count
             FROM films f
-            JOIN mpa_ratings mr ON f.mpa_rating_id = mr.id
+            JOIN review_ratings mr ON f.mpa_rating_id = mr.id
             LEFT JOIN (
                 SELECT film_id, COUNT(*) AS likes_count
                 FROM film_likes
@@ -69,7 +69,7 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
                    m.description mpa_description,
                    fl.likes_count
             FROM films f
-            JOIN mpa_ratings m
+            JOIN review_ratings m
             ON f.mpa_rating_id = m.id
             LEFT JOIN (
                 SELECT film_id, COUNT(*) AS likes_count
@@ -92,8 +92,7 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
                    m.name mpa_name,
                    m.description mpa_description
             FROM films f
-            JOIN mpa_ratings m
-            ON f.mpa_rating_id = m.id;
+            LEFT JOIN mpa_rating m ON f.mpa_rating_id = m.id;
             """;
     private static final String GET_GENRES_ID_FOR_FILM_ID_QUERY = """
                     SELECT g.genre_id,
@@ -109,7 +108,7 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
                    m.description mpa_description,
                    fl.likes_count
             FROM films f
-            JOIN mpa_ratings m
+            JOIN review_ratings m
             ON f.mpa_rating_id = m.id
             LEFT JOIN (
                 SELECT film_id, COUNT(*) AS likes_count
@@ -244,7 +243,7 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
         List<FilmDto> films = jdbcTemplate.query(GET_ALL_FILMS_QUERY, new FilmRowMapper());
         films.forEach(this::addGenresAndLikesToFilm);
 
-        return films.stream().map(FilmMapper1::mapToFilm).toList();
+        return films.stream().map(FilmMapper::mapToFilm).toList();
     }
 
     // Получение фильма по id ––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
@@ -261,7 +260,7 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
             // 2. Если фильм найден, дополняем его данными
             if (filmDto != null) {
                 addGenresAndLikesToFilm(filmDto);
-                return Optional.of(FilmMapper1.mapToFilm(filmDto));
+                return Optional.of(FilmMapper.mapToFilm(filmDto));
             }
             return Optional.empty();
         } catch (EmptyResultDataAccessException e) {
@@ -293,7 +292,7 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
         popularFilms.forEach(this::addGenresAndLikesToFilm);
 
         return popularFilms.stream()
-                .map(FilmMapper1::mapToFilm)
+                .map(FilmMapper::mapToFilm)
                 .toList();
     }
 
@@ -355,7 +354,7 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
         List<FilmDto> films = jdbcTemplate.query(GET_COMMON_FILMS, new FilmRowMapper(), userId, friendId);
         List<FilmDto> filmsToResponse = addGenresAndLikesToFilmList(films, likes, genres);
 
-        return filmsToResponse.stream().map(FilmMapper1::mapToFilm).toList();
+        return filmsToResponse.stream().map(FilmMapper::mapToFilm).toList();
     }
 
     @Override
@@ -375,7 +374,7 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
 
         List<FilmDto> filmsToResponse = addGenresAndLikesToFilmList(films, likes, genres);
 
-        return filmsToResponse.stream().map(FilmMapper1::mapToFilm).toList();
+        return filmsToResponse.stream().map(FilmMapper::mapToFilm).toList();
     }
 
     public Set<Integer> getLikedFilmsIds(Integer userId) {
@@ -397,7 +396,7 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
         films.forEach(this::addGenresAndLikesToFilm);
 
         return films.stream()
-                .map(FilmMapper1::mapToFilm)
+                .map(FilmMapper::mapToFilm)
                 .toList();
     }
     // ВСПОМОГАТЕЛЬНЫЕ МЕТОДЫ ––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
