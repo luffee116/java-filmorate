@@ -431,7 +431,7 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
             return jdbcTemplate.query(conntection -> {
                 PreparedStatement statement = conntection.prepareStatement(SQLQuery);
                 statement.setString(1, "%" + query + "%");
-                statement.setString(2,  "%" + query + "%");
+                statement.setString(2, "%" + query + "%");
                 return statement;
             }, new FilmRowMapper());
         } else if (by.contains("director")) {
@@ -441,7 +441,7 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
         } else {
             throw new RuntimeException("Неподходящий параметр запроса");
         }
-        return jdbcTemplate.query(connection ->{
+        return jdbcTemplate.query(connection -> {
             PreparedStatement statement = connection.prepareStatement(SQLQuery);
             statement.setString(1, "%" + query + "%");
             return statement;
