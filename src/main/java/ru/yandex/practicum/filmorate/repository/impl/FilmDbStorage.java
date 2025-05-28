@@ -111,6 +111,16 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
             WHERE user_id = ?;
             """;
 
+    private static final String GET_POPULAR_FILMS_BY_GENRE_AND_YEAR = """
+            SELECT f.*, m.id AS mpa_id, m.name AS mpa_name, m.description AS mpa_description
+            FROM films f
+            JOIN mpa_rating m ON f.mpa_rating_id = m.id
+            LEFT JOIN film_genres fg ON f.id = fg.film_id
+            WHERE (fg.genre_id = ? OR ?) AND (EXTRACT(YEAR FROM f.release_date) = ? OR ?)
+            ORDER BY (SELECT COUNT(*) FROM film_likes fl WHERE fl.film_id = f.id) DESC
+            LIMIT ?
+            """;
+
     public FilmDbStorage(JdbcTemplate jdbcTemplate) {
         super(jdbcTemplate);
     }
@@ -269,6 +279,7 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
             return false;
         }
     }
+
     /**
      * Получает список фильмов, которые понравились как указанному пользователю, так и его другу.
      * Использует SQL-запрос для извлечения общих фильмов, затем обогащает их жанрами и лайками.
@@ -282,6 +293,26 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
         Map<Integer, List<GenreDto>> genres = setUpGenres();
 
         List<FilmDto> films = jdbcTemplate.query(GET_COMMON_FILMS, new FilmRowMapper(), userId, friendId);
+        List<FilmDto> filmsToResponse = addGenresAndLikesToFilmList(films, likes, genres);
+
+        return filmsToResponse.stream().map(FilmMapper::mapToFilm).toList();
+    }
+
+    @Override
+    public List<Film> getPopularFilmsByGenreAndYear(int count, Integer genreId, Integer year) {
+        Map<Integer, List<Integer>> likes = setUpLikes();
+        Map<Integer, List<GenreDto>> genres = setUpGenres();
+
+        String sql = GET_POPULAR_FILMS_BY_GENRE_AND_YEAR;
+
+        List<FilmDto> films;
+        try {
+            films = jdbcTemplate.query(sql, new FilmRowMapper(), genreId, genreId == null, year, year == null, count);
+        } catch (DataAccessException e) {
+            System.err.println("Ошибка при выполнении запроса: " + e.getMessage());
+            return Collections.emptyList();
+        }
+
         List<FilmDto> filmsToResponse = addGenresAndLikesToFilmList(films, likes, genres);
 
         return filmsToResponse.stream().map(FilmMapper::mapToFilm).toList();

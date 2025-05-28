@@ -26,4 +26,6 @@ public interface FilmStorage {
     boolean existsById(Integer id);
 
     List<Film> getCommonFilms(Integer userId, Integer friendId);
+
+    List<Film> getPopularFilmsByGenreAndYear(int count, Integer genreId, Integer year);
 }
