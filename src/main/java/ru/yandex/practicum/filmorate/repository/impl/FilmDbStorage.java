@@ -103,7 +103,8 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
                            g.name
                     FROM genres g
                     JOIN film_genres fg ON g.GENRE_ID = fg.GENRE_ID
-                    WHERE fg.FILM_ID = ?;
+                    WHERE fg.FILM_ID = ?
+                    ORDER BY g.genre_id ASC;
             """;
     private static final String FIND_FILMS_DIRECTORS_FOR_DATES = """
             SELECT f.id AS id,
