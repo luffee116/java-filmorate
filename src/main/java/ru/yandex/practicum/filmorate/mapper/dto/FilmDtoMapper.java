@@ -15,8 +15,11 @@ public final class FilmDtoMapper {
                     .releaseDate(film.getReleaseDate())
                     .duration(film.getDuration())
                     .mpa(MpaDtoRatingMapper.mapToDto(film.getMpa()))
-                    .likes(film.getLikes())
                     .review(film.getReview())
+                    .directors(film.getDirectors().stream()
+                            .map(DirectorDtoMapper::toDirectorDto)
+                            .collect(Collectors.toSet()))
+                    .likes(film.getLikes())
                     .build();
         } else {
             return FilmDto.builder()
@@ -31,6 +34,9 @@ public final class FilmDtoMapper {
                             .map(GenreDtoMapper::mapToDto)
                             .collect(Collectors.toSet())
                     )
+                    .directors(film.getDirectors().stream()
+                            .map(DirectorDtoMapper::toDirectorDto)
+                            .collect(Collectors.toSet()))
                     .likes(film.getLikes())
                     .review(film.getReview())
                     .build();

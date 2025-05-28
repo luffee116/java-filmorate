@@ -14,6 +14,9 @@ public final class FilmMapper {
                 .mpa(MpaRatingMapper.mapToRating(filmDto.getMpa()))
                 .duration(filmDto.getDuration())
                 .releaseDate(filmDto.getReleaseDate())
+                .directors(filmDto.getDirectors().stream()
+                        .map(DirectorMapper::toDirector)
+                        .collect(Collectors.toSet()))
                 .likes(filmDto.getLikes())
                 .review(filmDto.getReview());
 

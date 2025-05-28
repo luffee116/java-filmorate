@@ -6,6 +6,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.dto.FilmDto;
+import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.FilmService;
 
 import java.util.Collection;
@@ -84,5 +85,12 @@ public class FilmController {
     public List<FilmDto> getCommonFilms(@RequestParam Integer userId,
                                         @RequestParam Integer friendId) {
         return filmService.getCommonFilms(userId, friendId);
+    }
+    @GetMapping("/director/{id}")
+    public Collection<Film> getFilmsDirector(
+            @PathVariable Long id,
+            @RequestParam(defaultValue = "year") String sortBy
+    ) {
+        return filmService.getFilmsDirector(id, sortBy);
     }
 }

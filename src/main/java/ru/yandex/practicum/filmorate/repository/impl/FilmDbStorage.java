@@ -8,14 +8,17 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
+import ru.yandex.practicum.filmorate.dto.DirectorDto;
 import ru.yandex.practicum.filmorate.dto.FilmDto;
 import ru.yandex.practicum.filmorate.dto.GenreDto;
 import ru.yandex.practicum.filmorate.exeptions.NotFoundException;
-import ru.yandex.practicum.filmorate.mapper.toEntity.FilmMapper;
+import ru.yandex.practicum.filmorate.mapper.toEntity.FilmMapper1;
+import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.repository.FilmStorage;
 import ru.yandex.practicum.filmorate.repository.TypeEntity;
+import ru.yandex.practicum.filmorate.rowMappers.DirectorDtoRowMapper;
 import ru.yandex.practicum.filmorate.rowMappers.FilmRowMapper;
 import ru.yandex.practicum.filmorate.rowMappers.GenreDtoRowMapper;
 
@@ -36,40 +39,61 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
     private static final String ADD_LIKE_TO_FILM_QUERY = """
             INSERT INTO film_likes (USER_ID, FILM_ID) VALUES (?, ?);
             """;
+    private static final String INSERT_FILM_DIRECTOR_QUERY = """
+            INSERT INTO film_directors (film_id, director_id) VALUES (?, ?);
+            """;
     private static final String DELETE_LIKE_TO_FILM_QUERY = """
             DELETE FROM film_likes WHERE USER_ID = ? AND FILM_ID = ?;
             """;
     private static final String GET_POPULAR_FILM_QUERY = """
-            SELECT f.id,
-                   f.name,
-                   f.description,
-                   f.release_date,
-                   f.DURATION,
+                SELECT f.*,
+                   mr.id mpa_id,
+                   mr.name mpa_name,
+                   mr.description mpa_description,
+                   fl.likes_count
+            FROM films f
+            JOIN mpa_ratings mr ON f.mpa_rating_id = mr.id
+            LEFT JOIN (
+                SELECT film_id, COUNT(*) AS likes_count
+                FROM film_likes
+                GROUP BY film_id
+            ) fl ON f.id = fl.film_id
+            ORDER BY likes_count DESC,
+                     f.id DESC
+            LIMIT ?;
+            """;
+    private static final String FIND_FILMS_DIRECTORS_FOR_LIKES = """
+            SELECT f.*,
                    m.id mpa_id,
                    m.name mpa_name,
                    m.description mpa_description,
-                    COUNT(l.USER_ID) likes_count
-                FROM films f
-                LEFT JOIN mpa_rating m ON f.mpa_rating_id = m.id
-                LEFT JOIN film_likes l ON f.id = l.film_id
-                GROUP BY f.id
-                ORDER BY likes_count DESC
-                LIMIT ?;
+                   fl.likes_count
+            FROM films f
+            JOIN mpa_ratings m
+            ON f.mpa_rating_id = m.id
+            LEFT JOIN (
+                SELECT film_id, COUNT(*) AS likes_count
+                FROM film_likes
+                GROUP BY film_id
+            ) fl ON f.id = fl.film_id
+            WHERE f.id IN (
+                SELECT film_id
+                FROM film_directors
+                WHERE director_id = ?
+            )
+            ORDER BY fl.likes_count DESC;
             """;
     private static final String ADD_FILM_GENRES_QUERY = """
             INSERT INTO film_genres (film_id, genre_id) VALUES (?, ?);
             """;
     private static final String GET_ALL_FILMS_QUERY = """
-                SELECT f.id,
-                       f.name,
-                       f.description,
-                       f.release_date,
-                       f.DURATION,
-                       m.id mpa_id,
-                       m.name mpa_name,
-                       m.description mpa_description
-                FROM films f
-                LEFT JOIN mpa_rating m ON f.mpa_rating_id = m.id
+               SELECT f.*,
+                   m.id mpa_id,
+                   m.name mpa_name,
+                   m.description mpa_description
+            FROM films f
+            JOIN mpa_ratings m
+            ON f.mpa_rating_id = m.id;
             """;
     private static final String GET_GENRES_ID_FOR_FILM_ID_QUERY = """
                     SELECT g.genre_id,
@@ -77,6 +101,27 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
                     FROM genres g
                     JOIN film_genres fg ON g.GENRE_ID = fg.GENRE_ID
                     WHERE fg.FILM_ID = ?;
+            """;
+    private static final String FIND_FILMS_DIRECTORS_FOR_DATES = """
+            SELECT f.*,
+                   m.id mpa_id,
+                   m.name mpa_name,
+                   m.description mpa_description,
+                   fl.likes_count
+            FROM films f
+            JOIN mpa_ratings m
+            ON f.mpa_rating_id = m.id
+            LEFT JOIN (
+                SELECT film_id, COUNT(*) AS likes_count
+                FROM film_likes
+                GROUP BY film_id
+            ) fl ON f.id = fl.film_id
+            WHERE f.id IN (
+                SELECT film_id
+                FROM film_directors
+                WHERE director_id = ?
+            )
+            ORDER BY f.release_date ASC;
             """;
     private static final String GET_LIKES_BY_FILM_ID_QUERY = """
                     SELECT user_id
@@ -109,6 +154,18 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
             SELECT film_id
             FROM film_likes
             WHERE user_id = ?;
+            """;
+    private static final String DELETE_FILM_DIRECTORS_BY_ID = """
+            DELETE FROM film_directors WHERE film_id = ?;
+            """;
+
+    private static final String FIND_DIRECTORS_ID_BY_FILM_ID_QUERY = """
+            SELECT d.id,
+                   d.name
+            FROM directors d
+            JOIN film_directors fd
+            ON d.id = fd.director_id
+            WHERE fd.film_id = ?;
             """;
 
     public FilmDbStorage(JdbcTemplate jdbcTemplate) {
@@ -162,6 +219,10 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
         // Обновление жанров фильма
         jdbcTemplate.update(DELETE_FILM_GENRES_BY_ID, film.getId());
         addFilmGenres(film.getGenres(), film.getId());
+        // обновить режиссеров фильма
+        jdbcTemplate.update(DELETE_FILM_DIRECTORS_BY_ID, film.getId());
+        saveFilmDirectors(film.getId().longValue(), film.getDirectors());
+
         log.info("Film updated: {}", film.getId());
         return film;
     }
@@ -169,13 +230,11 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
     // Получение всех фильмов ––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
     @Override
     public List<Film> getAll() {
-        Map<Integer, List<Integer>> likes = setUpLikes();
-        Map<Integer, List<GenreDto>> genres = setUpGenres();
 
         List<FilmDto> films = jdbcTemplate.query(GET_ALL_FILMS_QUERY, new FilmRowMapper());
+        films.forEach(this::addGenresAndLikesToFilm);
 
-        List<FilmDto> filmsToResponse = addGenresAndLikesToFilmList(films, likes, genres);
-        return filmsToResponse.stream().map(FilmMapper::mapToFilm).toList();
+        return films.stream().map(FilmMapper1::mapToFilm).toList();
     }
 
     // Получение фильма по id ––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
@@ -192,7 +251,7 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
             // 2. Если фильм найден, дополняем его данными
             if (filmDto != null) {
                 addGenresAndLikesToFilm(filmDto);
-                return Optional.of(FilmMapper.mapToFilm(filmDto));
+                return Optional.of(FilmMapper1.mapToFilm(filmDto));
             }
             return Optional.empty();
         } catch (EmptyResultDataAccessException e) {
@@ -218,13 +277,14 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
     // Получение списка популярных фильмов –––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
     @Override
     public List<Film> getPopularFilm(Integer count) {
-        Map<Integer, List<Integer>> likes = setUpLikes();
-        Map<Integer, List<GenreDto>> genres = setUpGenres();
+        List<FilmDto> popularFilms = jdbcTemplate.query(GET_POPULAR_FILM_QUERY, new FilmRowMapper(), count);
 
-        List<FilmDto> films = jdbcTemplate.query(GET_POPULAR_FILM_QUERY, new FilmRowMapper(), count);
+        // загрузить жанры, режиссеров и лайки для выбранных фильмов
+        popularFilms.forEach(this::addGenresAndLikesToFilm);
 
-        List<FilmDto> filmsToResponse = addGenresAndLikesToFilmList(films, likes, genres);
-        return filmsToResponse.stream().map(FilmMapper::mapToFilm).toList();
+        return popularFilms.stream()
+                .map(FilmMapper1::mapToFilm)
+                .toList();
     }
 
     /**
@@ -269,6 +329,7 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
             return false;
         }
     }
+
     /**
      * Получает список фильмов, которые понравились как указанному пользователю, так и его другу.
      * Использует SQL-запрос для извлечения общих фильмов, затем обогащает их жанрами и лайками.
@@ -284,11 +345,30 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
         List<FilmDto> films = jdbcTemplate.query(GET_COMMON_FILMS, new FilmRowMapper(), userId, friendId);
         List<FilmDto> filmsToResponse = addGenresAndLikesToFilmList(films, likes, genres);
 
-        return filmsToResponse.stream().map(FilmMapper::mapToFilm).toList();
+        return filmsToResponse.stream().map(FilmMapper1::mapToFilm).toList();
     }
 
     public Set<Integer> getLikedFilmsIds(Integer userId) {
         return new HashSet<>(jdbcTemplate.queryForList(GET_LIKED_FILMS_BY_USER_ID_QUERY, Integer.class, userId));
+    }
+
+    //--- Получение фильмов режиссера, отсортированных по годам или лайкам ---------------------------------------------
+    public Collection<Film> getFilmsDirector(Long directorId, String sortBy) {
+        List<FilmDto> films = new ArrayList<>();
+        if (sortBy.equals("likes")) {
+            films = jdbcTemplate.query(FIND_FILMS_DIRECTORS_FOR_LIKES, new FilmRowMapper(), directorId);
+        } else if (sortBy.equals("year")) {
+            films = jdbcTemplate.query(FIND_FILMS_DIRECTORS_FOR_DATES, new FilmRowMapper(), directorId);
+        } else {
+            throw new IllegalArgumentException("sortBy must be 'likes' or 'year'");
+        }
+
+        // загрузить жанры, режиссеров и лайки для всех фильмов
+        films.forEach(this::addGenresAndLikesToFilm);
+
+        return films.stream()
+                .map(FilmMapper1::mapToFilm)
+                .toList();
     }
     // ВСПОМОГАТЕЛЬНЫЕ МЕТОДЫ ––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
 
@@ -318,6 +398,7 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
     private void addGenresAndLikesToFilm(FilmDto filmDto) {
         Integer filmId = filmDto.getId();
         filmDto.setGenres(loadGenresForFilm(filmId));
+        filmDto.setDirectors(loadDirectorsForFilm(Long.valueOf(filmId)));
         filmDto.setLikes(loadLikesForFilm(filmId));
     }
 
@@ -389,4 +470,24 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
         });
         return filmLikes;
     }
+
+    private void checkGenreExists(Genre genre) {
+        checkEntityExists(genre.getId(), TypeEntity.GENRE);
+    }
+
+    private void checkDirectorExists(Director director) {
+        checkEntityExists(director.getId(), TypeEntity.DIRECTOR);
+    }
+
+    private Set<DirectorDto> loadDirectorsForFilm(Long filmId) {
+        return new HashSet<>(jdbcTemplate.query(FIND_DIRECTORS_ID_BY_FILM_ID_QUERY, new DirectorDtoRowMapper(), filmId));
+    }
+
+    private void saveFilmDirectors(Long filmId, Set<Director> directors) {
+        if (directors != null && !directors.isEmpty()) {
+            directors.forEach(this::checkDirectorExists);
+            directors.forEach(director -> jdbcTemplate.update(INSERT_FILM_DIRECTOR_QUERY, filmId, director.getId()));
+        }
+    }
+
 }

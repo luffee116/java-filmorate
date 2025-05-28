@@ -42,6 +42,8 @@ public class FilmDto {
 
     private Map<Integer, String> review;
 
+    private Set<DirectorDto> directors;
+
     @AssertTrue
     public boolean isReleaseDateValid() {
         return releaseDate != null && releaseDate.isAfter(LocalDate.of(1950, 12, 28));

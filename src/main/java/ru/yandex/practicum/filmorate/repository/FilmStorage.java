@@ -2,6 +2,7 @@ package ru.yandex.practicum.filmorate.repository;
 
 import ru.yandex.practicum.filmorate.model.Film;
 
+import java.util.Collection;
 import java.util.Optional;
 import java.util.List;
 
@@ -26,4 +27,6 @@ public interface FilmStorage {
     boolean existsById(Integer id);
 
     List<Film> getCommonFilms(Integer userId, Integer friendId);
+
+    Collection<Film> getFilmsDirector(Long filmId, String sortBy);
 }
