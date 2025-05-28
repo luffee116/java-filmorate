@@ -16,7 +16,6 @@ import ru.yandex.practicum.filmorate.repository.TypeEntity;
 import ru.yandex.practicum.filmorate.repository.UserStorage;
 import ru.yandex.practicum.filmorate.rowMappers.UserRowMapper;
 
-import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.Statement;
 import java.time.LocalDate;
