@@ -112,7 +112,11 @@ public class UserDbStorage extends BaseDbStorage implements UserStorage {
             ps.setString(1, user.getEmail());
             ps.setString(2, user.getLogin());
             ps.setString(3, user.getName());
-            ps.setDate(4, user.getBirthday() == null ? Date.valueOf(user.getBirthday()) : null);
+            if (user.getBirthday() != null) {
+                ps.setDate(4, java.sql.Date.valueOf(user.getBirthday()));
+            } else {
+                ps.setNull(4, java.sql.Types.DATE);
+            }
             return ps;
         }, keyHolder);
 
