@@ -46,6 +46,7 @@ public class BaseDbStorage {
             case DIRECTOR -> CHECK_EXISTS_DIRECTOR_BY_ID_QUERY;
         };
     }
+
     protected void checkEntityExists(Integer id, TypeEntity type) {
         String query = getQuery(type);
 

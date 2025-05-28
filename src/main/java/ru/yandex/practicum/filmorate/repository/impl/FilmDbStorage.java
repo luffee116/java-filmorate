@@ -375,7 +375,7 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
 
         List<FilmDto> filmsToResponse = addGenresAndLikesToFilmList(films, likes, genres);
 
-        return filmsToResponse.stream().map(FilmMapper::mapToFilm).toList();
+        return filmsToResponse.stream().map(FilmMapper1::mapToFilm).toList();
     }
 
     public Set<Integer> getLikedFilmsIds(Integer userId) {
