@@ -37,7 +37,7 @@ public class UserService {
     }
 
     public UserDto addUser(UserDto user) {
-        if (user.getLogin().contains(" ")){
+        if (user.getLogin().contains(" ")) {
             throw new ValidationException("Validation Exception");
         }
         User user1 = UserMapper.mapToUser(user);
