@@ -58,6 +58,11 @@ public class FilmService {
         return FilmDtoMapper.mapToFilmDto(updatedFilm);
     }
 
+    public List<FilmDto> getPopularFilmsByGenreAndYear(int count, Integer genreId, Integer year) {
+        List<Film> popularFilms = filmStorage.getPopularFilmsByGenreAndYear(count, genreId, year);
+        return popularFilms.stream().map(FilmDtoMapper::mapToFilmDto).toList();
+    }
+
     public List<FilmDto> getAll() {
         log.info("Отправлен список всех фильмов, size: {}", filmDbStorage.getAll().size());
         List<Film> films = filmDbStorage.getAll();
