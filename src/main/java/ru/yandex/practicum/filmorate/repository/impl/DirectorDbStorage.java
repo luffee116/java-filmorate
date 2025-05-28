@@ -43,7 +43,7 @@ public class DirectorDbStorage extends BaseDbStorage implements DirectorStorage 
 
     @Override
     public Director create(Director director) {
-        String sql = "INSERT INTO directors(name) VALUES(?)";
+        String sql = "INSERT INTO director(name) VALUES(?)";
         KeyHolder keyHolder = new GeneratedKeyHolder();
         jdbcTemplate.update(con -> {
             PreparedStatement ps = con.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
