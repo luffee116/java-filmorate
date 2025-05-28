@@ -3,8 +3,10 @@ package ru.yandex.practicum.filmorate.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.dto.EventDto;
+import ru.yandex.practicum.filmorate.exeptions.NotFoundException;
 import ru.yandex.practicum.filmorate.mapper.dto.EventDtoMapper;
 import ru.yandex.practicum.filmorate.model.UserFeedEvent;
+import ru.yandex.practicum.filmorate.repository.impl.UserDbStorage;
 import ru.yandex.practicum.filmorate.repository.impl.UserFeedDbStorage;
 
 import java.time.Instant;
@@ -15,6 +17,7 @@ import java.util.List;
 public class UserFeedService {
 
     private final UserFeedDbStorage userFeedRepository;
+    private final UserDbStorage userStorage;
 
     public void createEvent(Integer userId, String eventType, String operation, int entityId) {
         UserFeedEvent event = UserFeedEvent.builder()
@@ -29,6 +32,9 @@ public class UserFeedService {
     }
 
     public List<EventDto> getFeedByUserId(int userId) {
+        if (!userStorage.existsById(userId)) {
+            throw new NotFoundException("Пользователь с ID " + userId + " не найден.");
+        }
         List<UserFeedEvent> userFeed = userFeedRepository.getFeedByUserId(userId);
         return userFeed.stream().map(EventDtoMapper::mapToEventDto).toList();
     }
