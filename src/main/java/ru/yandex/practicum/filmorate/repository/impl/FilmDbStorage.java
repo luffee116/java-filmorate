@@ -63,14 +63,17 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
             LIMIT ?;
             """;
     private static final String FIND_FILMS_DIRECTORS_FOR_LIKES = """
-            SELECT f.*,
-                   m.id mpa_id,
-                   m.name mpa_name,
-                   m.description mpa_description,
-                   fl.likes_count
+            SELECT f.id AS film_id,
+                   f.name AS film_name,
+                   f.description AS film_description,
+                   f.release_date,
+                   f.duration,
+                   mr.id AS mpa_id,
+                   mr.name AS mpa_name,
+                   mr.description AS mpa_description,
+                   COALESCE(fl.likes_count, 0) AS likes_count
             FROM films f
-            JOIN review_ratings m
-            ON f.mpa_rating_id = m.id
+            JOIN mpa_rating mr ON f.mpa_rating_id = mr.id
             LEFT JOIN (
                 SELECT film_id, COUNT(*) AS likes_count
                 FROM film_likes
@@ -81,8 +84,9 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
                 FROM film_directors
                 WHERE director_id = ?
             )
-            ORDER BY fl.likes_count DESC;
+            ORDER BY likes_count DESC;
             """;
+
     private static final String ADD_FILM_GENRES_QUERY = """
             INSERT INTO film_genres (film_id, genre_id) VALUES (?, ?);
             """;
@@ -102,14 +106,17 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
                     WHERE fg.FILM_ID = ?;
             """;
     private static final String FIND_FILMS_DIRECTORS_FOR_DATES = """
-            SELECT f.*,
-                   m.id mpa_id,
-                   m.name mpa_name,
-                   m.description mpa_description,
-                   fl.likes_count
+            SELECT f.id AS film_id,
+                   f.name AS film_name,
+                   f.description AS film_description,
+                   f.release_date,
+                   f.duration,
+                   mr.id AS mpa_id,
+                   mr.name AS mpa_name,
+                   mr.description AS mpa_description,
+                   COALESCE(fl.likes_count, 0) AS likes_count
             FROM films f
-            JOIN review_ratings m
-            ON f.mpa_rating_id = m.id
+            JOIN mpa_rating mr ON f.mpa_rating_id = mr.id
             LEFT JOIN (
                 SELECT film_id, COUNT(*) AS likes_count
                 FROM film_likes
@@ -122,6 +129,7 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
             )
             ORDER BY f.release_date ASC;
             """;
+
     private static final String GET_LIKES_BY_FILM_ID_QUERY = """
                     SELECT user_id
                     FROM film_likes
