@@ -63,9 +63,9 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
             LIMIT ?;
             """;
     private static final String FIND_FILMS_DIRECTORS_FOR_LIKES = """
-            SELECT f.id AS film_id,
-                   f.name AS film_name,
-                   f.description AS film_description,
+            SELECT f.id AS id,
+                   f.name AS name,
+                   f.description AS description,
                    f.release_date,
                    f.duration,
                    mr.id AS mpa_id,
@@ -106,9 +106,9 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
                     WHERE fg.FILM_ID = ?;
             """;
     private static final String FIND_FILMS_DIRECTORS_FOR_DATES = """
-            SELECT f.id AS film_id,
-                   f.name AS film_name,
-                   f.description AS film_description,
+            SELECT f.id AS id,
+                   f.name AS name,
+                   f.description AS description,
                    f.release_date,
                    f.duration,
                    mr.id AS mpa_id,
