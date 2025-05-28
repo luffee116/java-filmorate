@@ -43,6 +43,7 @@ public class FilmDto {
 
     private Map<Integer, String> review;
 
+    @Builder.Default
     private Set<DirectorDto> directors = new HashSet<>();
 
     @AssertTrue
