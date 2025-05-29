@@ -313,6 +313,7 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
     // Добавление лайка фильму –––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
     @Override
     public Optional<Boolean> addLike(Integer filmId, Integer userId) {
+        removeLike(filmId, userId);
         int rowsUpdated = jdbcTemplate.update(ADD_LIKE_TO_FILM_QUERY, userId, filmId);
         return Optional.of(rowsUpdated > 0);
     }

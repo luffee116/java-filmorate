@@ -74,7 +74,7 @@ public class FilmService {
 
     public void addLike(Integer filmId, Integer userId) {
         validateFilmAndUserId(filmId, userId);
-        filmDbStorage.addLike(filmId, userId);//.orElseThrow(() -> new LikeException("Ошибка при добавлении лайка"));
+        filmDbStorage.addLike(filmId, userId).orElseThrow(() -> new LikeException("Ошибка при добавлении лайка"));
         userFeedService.createEvent(userId, "LIKE", "ADD", filmId);
         log.info("Добавлен лайка для фильма id: {}, пользователем с id: {}", filmId, userId);
     }
