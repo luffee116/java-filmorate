@@ -208,6 +208,7 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
             JOIN mpa_rating m ON f.mpa_rating_id = m.id
             LEFT JOIN film_genres fg ON f.id = fg.film_id
             WHERE (fg.genre_id = ? OR ?) AND (EXTRACT(YEAR FROM f.release_date) = ? OR ?)
+            GROUP BY f.id
             ORDER BY (SELECT COUNT(*) FROM film_likes fl WHERE fl.film_id = f.id) DESC
             LIMIT ?
             """;
@@ -406,11 +407,9 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
         Map<Integer, List<GenreDto>> genres = setUpGenres();
         Map<Integer, Set<DirectorDto>> directors = setUpDirectors();
 
-        String sql = GET_POPULAR_FILMS_BY_GENRE_AND_YEAR;
-
         List<FilmDto> films;
         try {
-            films = jdbcTemplate.query(sql, new FilmRowMapper(), genreId, genreId == null, year, year == null, count);
+            films = jdbcTemplate.query(GET_POPULAR_FILMS_BY_GENRE_AND_YEAR, new FilmRowMapper(), genreId, genreId == null, year, year == null, count);
         } catch (DataAccessException e) {
             System.err.println("Ошибка при выполнении запроса: " + e.getMessage());
             return Collections.emptyList();
@@ -605,10 +604,6 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
             return likes;
         });
         return filmLikes;
-    }
-
-    private void checkGenreExists(Genre genre) {
-        checkEntityExists(genre.getId(), TypeEntity.GENRE);
     }
 
     private void checkDirectorExists(Director director) {
