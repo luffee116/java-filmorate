@@ -22,8 +22,4 @@ public interface UserStorage {
     Optional<List<User>> getCommonFriends(Integer firstUser, Integer secondUser);
 
     Optional<List<User>> getUserFriends(Integer userId);
-
-    void delete(Integer id);
-
-    boolean existsById(Integer id);
 }

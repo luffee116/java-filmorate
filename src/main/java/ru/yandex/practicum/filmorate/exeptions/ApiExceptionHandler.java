@@ -20,13 +20,13 @@ public class ApiExceptionHandler {
                 LocalDateTime.now());
     }
 
-    @ExceptionHandler({NotFoundException.class, LikeException.class, FilmUpdateException.class})
+    @ExceptionHandler({FilmNotFoundException.class, UserNotFoundException.class, NotFoundException.class, LikeException.class})
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public Exception handleNotFound(final RuntimeException e) {
         return new Exception(
                 e.getMessage(),
                 LocalDateTime.now()
-        );
+                );
     }
 
     @ExceptionHandler
