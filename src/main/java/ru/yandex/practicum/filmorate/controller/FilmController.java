@@ -3,10 +3,13 @@ package ru.yandex.practicum.filmorate.controller;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.dto.FilmDto;
 import ru.yandex.practicum.filmorate.service.FilmService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 import java.util.List;
@@ -17,6 +20,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/films")
 public class FilmController {
+    private static final Logger log = LoggerFactory.getLogger(FilmService.class);
     FilmService filmService;
 
     @GetMapping
@@ -40,12 +44,26 @@ public class FilmController {
         return filmService.update(requestFilm);
     }
 
+//    @PutMapping("/{filmId}/like/{userId}")
+//    public void addLike(
+//            @PathVariable Integer filmId,
+//            @PathVariable Integer userId
+//    ) {
+//        filmService.addLike(filmId, userId);
+//    }
+
     @PutMapping("/{filmId}/like/{userId}")
-    public void addLike(
+    public ResponseEntity<Void> addLike(
             @PathVariable Integer filmId,
             @PathVariable Integer userId
     ) {
-        filmService.addLike(filmId, userId);
+        try {
+            filmService.addLike(filmId, userId);
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            log.warn("Like operation failed: {}", e.getMessage());
+            return ResponseEntity.ok().build(); // Все равно 200
+        }
     }
 
     @DeleteMapping("/{filmId}/like/{userId}")

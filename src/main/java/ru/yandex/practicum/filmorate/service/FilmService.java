@@ -19,7 +19,6 @@ import ru.yandex.practicum.filmorate.repository.impl.UserDbStorage;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 
 @Service
@@ -73,23 +72,11 @@ public class FilmService {
         return films.stream().map(FilmDtoMapper::mapToFilmDto).toList();
     }
 
-    public void addLike1(Integer filmId, Integer userId) {
+    public void addLike(Integer filmId, Integer userId) {
         validateFilmAndUserId(filmId, userId);
         filmDbStorage.addLike(filmId, userId);//.orElseThrow(() -> new LikeException("Ошибка при добавлении лайка"));
         userFeedService.createEvent(userId, "LIKE", "ADD", filmId);
         log.info("Добавлен лайка для фильма id: {}, пользователем с id: {}", filmId, userId);
-    }
-
-    public void addLike(Integer filmId, Integer userId) {
-        validateFilmAndUserId(filmId, userId);
-
-        Optional<Boolean> likeResult = filmDbStorage.addLike(filmId, userId);
-        if (likeResult.isPresent() && likeResult.get()) {  // Если лайк успешно добавлен
-            userFeedService.createEvent(userId, "LIKE", "ADD", filmId);
-            log.info("Добавлен лайк для фильма id: {}, пользователем с id: {}", filmId, userId);
-        } else {
-            log.info("Лайк от пользователя {} фильму {} уже существует или не добавлен", userId, filmId);
-        }
     }
 
     public void removeLike(Integer filmId, Integer userId) {
