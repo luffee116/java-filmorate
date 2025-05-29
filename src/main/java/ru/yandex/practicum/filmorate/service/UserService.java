@@ -8,6 +8,7 @@ import ru.yandex.practicum.filmorate.dto.UserDto;
 import ru.yandex.practicum.filmorate.exeptions.FriendshipException;
 import ru.yandex.practicum.filmorate.exeptions.NotFoundException;
 
+import ru.yandex.practicum.filmorate.exeptions.ValidationException;
 import ru.yandex.practicum.filmorate.mapper.dto.UserDtoMapper;
 import ru.yandex.practicum.filmorate.mapper.toEntity.UserMapper;
 import ru.yandex.practicum.filmorate.model.User;
@@ -36,6 +37,9 @@ public class UserService {
     }
 
     public UserDto addUser(UserDto user) {
+        if (user.getLogin().contains(" ")) {
+            throw new ValidationException("Validation Exception");
+        }
         User user1 = UserMapper.mapToUser(user);
         if (user1.getName().isBlank()) {
             user1.setName(user1.getLogin());

@@ -11,6 +11,7 @@ import ru.yandex.practicum.filmorate.service.FilmService;
 import java.util.Collection;
 import java.util.List;
 
+
 @Validated
 @AllArgsConstructor
 @RestController
@@ -55,7 +56,7 @@ public class FilmController {
         filmService.removeLike(filmId, userId);
     }
 
-    @GetMapping("/allPopular")
+    @GetMapping("/popular")
     public List<FilmDto> getPopularFilm(@RequestParam(name = "count", required = false, defaultValue = "10") int count) {
         return filmService.getPopularFilm(count);
     }
@@ -94,12 +95,18 @@ public class FilmController {
         return filmService.getFilmsDirector(id, sortBy);
     }
 
-    @GetMapping("/popular")
+    @GetMapping("/AllPopular")
     public List<FilmDto> getPopularFilmsByGenreAndYear(
             @RequestParam(name = "count", required = false, defaultValue = "10") int count,
             @RequestParam(name = "genreId", required = false) Integer genreId,
             @RequestParam(name = "year", required = false) Integer year
     ) {
         return filmService.getPopularFilmsByGenreAndYear(count, genreId, year);
+    }
+
+    @GetMapping("/search")
+    public List<FilmDto> searchFilms(@RequestParam String query,
+                                     @RequestParam List<String> by) {
+        return filmService.searchFilms(query, by);
     }
 }
