@@ -42,10 +42,10 @@ public class ReviewDto {
 
     @NotNull(message = "userId не может быть null")
     @Min(value = 1, message = "userId должен быть больше 1")
-    private Integer userId;
+    private int userId;
 
     @NotNull(message = "filmId не может быть null")
-    private Integer filmId;
+    private int filmId;
 
     private Integer useful;
 }
