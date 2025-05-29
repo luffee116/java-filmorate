@@ -13,6 +13,7 @@ import ru.yandex.practicum.filmorate.mapper.dto.FilmDtoMapper;
 import ru.yandex.practicum.filmorate.mapper.toEntity.FilmMapper;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.repository.FilmStorage;
+import ru.yandex.practicum.filmorate.repository.impl.DirectorDbStorage;
 import ru.yandex.practicum.filmorate.repository.impl.FilmDbStorage;
 import ru.yandex.practicum.filmorate.repository.impl.UserDbStorage;
 
@@ -26,16 +27,18 @@ public class FilmService {
     private final FilmStorage filmStorage;
     private final UserDbStorage userStorage;
     private final UserFeedService userFeedService;
+    private final DirectorDbStorage directorDbStorage;
 
     private static final Logger log = LoggerFactory.getLogger(FilmService.class);
 
     @Autowired
     public FilmService(FilmDbStorage filmStorage, UserDbStorage userStorage, UserFeedService userFeedService,
-                       FilmDbStorage filmDbStorage) {
+                       FilmDbStorage filmDbStorage, DirectorDbStorage directorDbStorage) {
         this.filmDbStorage = filmDbStorage;
         this.userStorage = userStorage;
         this.userFeedService = userFeedService;
         this.filmStorage = filmStorage;
+        this.directorDbStorage = directorDbStorage;
     }
 
     public FilmDto create(FilmDto requestFilm) {
@@ -71,7 +74,7 @@ public class FilmService {
 
     public void addLike(Integer filmId, Integer userId) {
         validateFilmAndUserId(filmId, userId);
-        filmDbStorage.addLike(filmId, userId).orElseThrow(() -> new LikeException("Ошибка при добавлении лайка"));
+        filmDbStorage.addLike(filmId, userId);//.orElseThrow(() -> new LikeException("Ошибка при добавлении лайка"));
         userFeedService.createEvent(userId, "LIKE", "ADD", filmId);
         log.info("Добавлен лайка для фильма id: {}, пользователем с id: {}", filmId, userId);
     }
@@ -177,6 +180,7 @@ public class FilmService {
     }
 
     public Collection<FilmDto> getFilmsDirector(Long id, String sortBy) {
+        directorDbStorage.existById(id);
         return filmStorage.getFilmsDirector(id, sortBy).stream().map(FilmDtoMapper::mapToFilmDto).toList();
     }
 }

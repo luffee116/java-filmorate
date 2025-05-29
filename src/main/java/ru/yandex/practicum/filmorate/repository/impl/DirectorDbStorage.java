@@ -129,4 +129,8 @@ public class DirectorDbStorage extends BaseDbStorage implements DirectorStorage 
         int rowsAffected = jdbcTemplate.update(DELETE_DIRECTOR_QUERY, id);
         return Optional.of(rowsAffected > 0);
     }
+
+    public void existById(Long id) {
+        checkEntityExists(id.intValue(), TypeEntity.DIRECTOR);
+    }
 }

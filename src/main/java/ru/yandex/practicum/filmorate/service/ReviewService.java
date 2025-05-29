@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.dto.ReviewDto;
 import ru.yandex.practicum.filmorate.exeptions.ConflictException;
 import ru.yandex.practicum.filmorate.exeptions.NotFoundException;
+import ru.yandex.practicum.filmorate.exeptions.ValidationException;
 import ru.yandex.practicum.filmorate.mapper.dto.ReviewDtoMapper;
 import ru.yandex.practicum.filmorate.mapper.toEntity.ReviewMapper;
 import ru.yandex.practicum.filmorate.model.Review;
@@ -265,6 +266,9 @@ public class ReviewService {
     private void checkUserAndFilmExist(Integer userId, Integer filmId) {
         if (userId == null || filmId == null) {
             return;
+        }
+        if (userId == 0 || filmId == 0) {
+            throw new ValidationException("Id пользователя или фильма должно быть указано");
         }
         userService.getUserById(userId);
         filmService.getFilmById(filmId);
