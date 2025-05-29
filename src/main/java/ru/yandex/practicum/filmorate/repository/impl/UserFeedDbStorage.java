@@ -4,9 +4,13 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.model.UserFeedEvent;
+import ru.yandex.practicum.filmorate.model.enumeration.EventOperation;
+import ru.yandex.practicum.filmorate.model.enumeration.EventType;
 import ru.yandex.practicum.filmorate.repository.UserFeedStorage;
 
 import java.util.List;
+
+import static ru.yandex.practicum.filmorate.model.enumeration.EnumUtils.safeValueOf;
 
 @Repository
 @RequiredArgsConstructor
@@ -45,8 +49,8 @@ public class UserFeedDbStorage implements UserFeedStorage {
                         .eventId(rs.getLong("event_id"))
                         .timestamp(rs.getLong("timestamp"))
                         .userId(rs.getInt("user_id"))
-                        .eventType(rs.getString("event_type"))
-                        .operation(rs.getString("operation"))
+                        .eventType(safeValueOf(EventType.class, rs.getString("event_type")))
+                        .operation(safeValueOf(EventOperation.class, rs.getString("operation")))
                         .entityId(rs.getInt("entity_id"))
                         .build(),
                 userId,

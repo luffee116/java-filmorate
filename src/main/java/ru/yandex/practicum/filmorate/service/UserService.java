@@ -12,6 +12,8 @@ import ru.yandex.practicum.filmorate.exeptions.ValidationException;
 import ru.yandex.practicum.filmorate.mapper.dto.UserDtoMapper;
 import ru.yandex.practicum.filmorate.mapper.toEntity.UserMapper;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.model.enumeration.EventOperation;
+import ru.yandex.practicum.filmorate.model.enumeration.EventType;
 import ru.yandex.practicum.filmorate.repository.impl.UserDbStorage;
 
 import java.util.List;
@@ -61,14 +63,14 @@ public class UserService {
     public void addFriend(Integer firstId, Integer secondId) {
         userStorage.addFriend(firstId, secondId)
                 .orElseThrow(() -> new FriendshipException("Ошибка при добавлении в друзья"));
-        userFeedService.createEvent(firstId, "FRIEND", "ADD", secondId);
+        userFeedService.createEvent(firstId,  EventType.FRIEND, EventOperation.ADD, secondId);
         log.info("Добавлена дружба между пользователями с id {} и {}", firstId, secondId);
     }
 
     public void removeFriend(Integer firstId, Integer secondId) {
         userStorage.removeFriend(firstId, secondId)
                 .orElseThrow(() -> new FriendshipException("Ошибка при удалении друзей"));
-        userFeedService.createEvent(firstId, "FRIEND", "REMOVE", secondId);
+        userFeedService.createEvent(firstId, EventType.FRIEND, EventOperation.REMOVE, secondId);
         log.info("Дружба удалена между пользователями с id {} и {}", firstId, secondId);
     }
 

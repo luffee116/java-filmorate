@@ -2,6 +2,9 @@ package ru.yandex.practicum.filmorate.mapper.dto;
 
 import ru.yandex.practicum.filmorate.dto.EventDto;
 import ru.yandex.practicum.filmorate.model.UserFeedEvent;
+import ru.yandex.practicum.filmorate.model.enumeration.EnumUtils;
+import ru.yandex.practicum.filmorate.model.enumeration.EventOperation;
+import ru.yandex.practicum.filmorate.model.enumeration.EventType;
 
 public final class EventDtoMapper {
 
