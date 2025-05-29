@@ -20,11 +20,11 @@ public class UserFeedDbStorage implements UserFeedStorage {
             """;
 
     private static final String GET_FEED_BY_USER_ID_QUERY = """
-         --   SELECT event_id, timestamp, uf.user_id, event_type, operation, entity_id
-         --   FROM user_feed uf
-          --  WHERE uf.user_id = ?
+            SELECT event_id, timestamp, uf.user_id, event_type, operation, entity_id
+            FROM user_feed uf
+            WHERE uf.user_id = ?
 
-          --  UNION ALL
+            UNION ALL
 
             SELECT event_id, timestamp, uf.user_id, event_type, operation, entity_id
             FROM user_feed uf
