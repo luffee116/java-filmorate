@@ -3,7 +3,6 @@ package ru.yandex.practicum.filmorate.controller;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.dto.FilmDto;
@@ -44,26 +43,12 @@ public class FilmController {
         return filmService.update(requestFilm);
     }
 
-//    @PutMapping("/{filmId}/like/{userId}")
-//    public void addLike(
-//            @PathVariable Integer filmId,
-//            @PathVariable Integer userId
-//    ) {
-//        filmService.addLike(filmId, userId);
-//    }
-
     @PutMapping("/{filmId}/like/{userId}")
-    public ResponseEntity<Void> addLike(
+    public void addLike(
             @PathVariable Integer filmId,
             @PathVariable Integer userId
     ) {
-        try {
-            filmService.addLike(filmId, userId);
-            return ResponseEntity.ok().build();
-        } catch (Exception e) {
-            log.warn("Like operation failed: {}", e.getMessage());
-            return ResponseEntity.ok().build(); // Все равно 200
-        }
+        filmService.addLike(filmId, userId);
     }
 
     @DeleteMapping("/{filmId}/like/{userId}")
