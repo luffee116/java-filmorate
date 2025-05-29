@@ -31,7 +31,7 @@ public class Review {
     private Integer reviewId;
     private String content;
     private Boolean isPositive;
-    private Integer userId;
-    private Integer filmId;
+    private int userId;
+    private int filmId;
     private Integer useful;
 }
