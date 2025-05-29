@@ -1,19 +1,21 @@
 package ru.yandex.practicum.filmorate.repository.impl;
 
+import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.dto.UserDto;
+import ru.yandex.practicum.filmorate.exeptions.NotFoundException;
 import ru.yandex.practicum.filmorate.exeptions.ValidationException;
 import ru.yandex.practicum.filmorate.mapper.toEntity.UserMapper;
-import ru.yandex.practicum.filmorate.repository.TypeEntity;
-import ru.yandex.practicum.filmorate.rowMappers.UserRowMapper;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.repository.TypeEntity;
 import ru.yandex.practicum.filmorate.repository.UserStorage;
+import ru.yandex.practicum.filmorate.rowMappers.UserRowMapper;
 
-import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.Statement;
 import java.time.LocalDate;
@@ -88,14 +90,15 @@ public class UserDbStorage extends BaseDbStorage implements UserStorage {
     public Optional<User> getUserById(Integer id) {
         Objects.requireNonNull(id, "Id не может быть null");
 
-        UserDto userDto = jdbcTemplate.queryForObject(GET_USER_BY_ID_QUERY, userRowMapper, id);
-
-        if (userDto != null) {
+        try {
+            UserDto userDto = jdbcTemplate.queryForObject(GET_USER_BY_ID_QUERY, userRowMapper, id);
             loadFriends(id);
             return Optional.of(UserMapper.mapToUser(userDto));
+        } catch (EmptyResultDataAccessException e) {
+            return Optional.empty();
         }
-        return Optional.empty();
     }
+
 
     // Добавление пользователя –––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
     @Override
@@ -108,7 +111,11 @@ public class UserDbStorage extends BaseDbStorage implements UserStorage {
             ps.setString(1, user.getEmail());
             ps.setString(2, user.getLogin());
             ps.setString(3, user.getName());
-            ps.setDate(4, user.getBirthday() == null ? Date.valueOf(user.getBirthday()) : null);
+            if (user.getBirthday() != null) {
+                ps.setDate(4, java.sql.Date.valueOf(user.getBirthday()));
+            } else {
+                ps.setNull(4, java.sql.Types.DATE);
+            }
             return ps;
         }, keyHolder);
 
@@ -194,6 +201,44 @@ public class UserDbStorage extends BaseDbStorage implements UserStorage {
                 .toList());
     }
 
+    /**
+     * Удаляет пользователя по идентификатору.
+     *
+     * @param id идентификатор пользователя
+     * @throws NotFoundException если пользователь не найден
+     */
+    @Override
+    @Transactional
+    public void delete(Integer id) {
+        // Проверяем существование пользователя
+        if (!existsById(id)) {
+            throw new NotFoundException("Пользователь с id=" + id + " не найден");
+        }
+
+        // Удаляем связанные данные (лайки и дружеские связи)
+        jdbcTemplate.update("DELETE FROM film_likes WHERE user_id = ?", id);
+        jdbcTemplate.update("DELETE FROM user_friends WHERE user_id = ? OR friend_id = ?", id, id);
+
+        // Удаляем пользователя
+        jdbcTemplate.update("DELETE FROM users WHERE id = ?", id);
+    }
+
+    /**
+     * Проверяет существование пользователя в базе данных по указанному идентификатору.
+     * <p>
+     * Использует эффективный запрос с EXISTS для минимальной нагрузки на базу данных.
+     * Особенно полезно для проверок перед выполнением операций удаления или модификации.
+     * </p>
+     *
+     * @param id идентификатор пользователя для проверки (должен быть не null)
+     * @return true - если пользователь с указанным ID существует, false - если не существует
+     * @throws IllegalArgumentException если переданный id равен null
+     */
+    @Override
+    public boolean existsById(Integer id) {
+        String sql = "SELECT EXISTS(SELECT 1 FROM users WHERE id = ?)";
+        return Boolean.TRUE.equals(jdbcTemplate.queryForObject(sql, Boolean.class, id));
+    }
     // ВСПОМОГАТЕЛЬНЫЙ МЕТОДЫ
 
     // Проверка существования пользователя –––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
@@ -220,8 +265,10 @@ public class UserDbStorage extends BaseDbStorage implements UserStorage {
     }
 
     // Преобразование со списком друзей ––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
+
     private void addFriendsToUserResponse(UserDto userDto) {
         Integer userId = userDto.getId();
         userDto.setFriendsId(loadFriends(userId));
     }
+
 }

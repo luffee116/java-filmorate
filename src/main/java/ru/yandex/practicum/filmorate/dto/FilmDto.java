@@ -9,6 +9,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
+import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 @Data
@@ -35,9 +37,14 @@ public class FilmDto {
     @NotNull(message = "Mpa не может быть пустой", groups = ValidationException.class)
     private MpaDto mpa;
 
-    private Set<GenreDto> genres;
+    private Set<GenreDto> genres = new HashSet<>();
 
     private Set<Integer> likes;
+
+    private Map<Integer, String> review;
+
+    @Builder.Default
+    private Set<DirectorDto> directors = new HashSet<>();
 
     @AssertTrue
     public boolean isReleaseDateValid() {
