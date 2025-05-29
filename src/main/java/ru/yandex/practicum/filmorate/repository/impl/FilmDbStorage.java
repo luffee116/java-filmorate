@@ -25,6 +25,7 @@ import ru.yandex.practicum.filmorate.rowMappers.GenreDtoRowMapper;
 import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Repository
 @Slf4j
@@ -265,7 +266,12 @@ public class FilmDbStorage extends BaseDbStorage implements FilmStorage {
         addFilmGenres(film.getGenres(), film.getId());
         // обновить режиссеров фильма
         jdbcTemplate.update(DELETE_FILM_DIRECTORS_BY_ID, film.getId());
+        // сортируем жанры
         saveFilmDirectors(film.getId().longValue(), film.getDirectors());
+        Set<Genre> sortedGenres = film.getGenres().stream()
+                .sorted(Comparator.comparingInt(Genre::getId))
+                .collect(Collectors.toCollection(LinkedHashSet::new));
+        film.setGenres(sortedGenres);
 
         log.info("Film updated: {}", film.getId());
         return film;

@@ -1,8 +1,11 @@
 package ru.yandex.practicum.filmorate.mapper.dto;
 
 import ru.yandex.practicum.filmorate.dto.FilmDto;
+import ru.yandex.practicum.filmorate.dto.GenreDto;
 import ru.yandex.practicum.filmorate.model.Film;
 
+import java.util.Comparator;
+import java.util.LinkedHashSet;
 import java.util.stream.Collectors;
 
 public final class FilmDtoMapper {
@@ -32,8 +35,9 @@ public final class FilmDtoMapper {
                     .genres(film.getGenres()
                             .stream()
                             .map(GenreDtoMapper::mapToDto)
-                            .collect(Collectors.toSet())
-                    )
+                            .sorted(Comparator.comparing(GenreDto::getId))
+                            .collect(Collectors.toCollection(LinkedHashSet::new)
+                    ))
                     .directors(film.getDirectors().stream()
                             .map(DirectorDtoMapper::toDirectorDto)
                             .collect(Collectors.toSet()))
