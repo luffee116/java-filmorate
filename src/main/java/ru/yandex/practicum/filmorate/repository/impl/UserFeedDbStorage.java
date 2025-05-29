@@ -20,17 +20,11 @@ public class UserFeedDbStorage implements UserFeedStorage {
             """;
 
     private static final String GET_FEED_BY_USER_ID_QUERY = """
-            SELECT event_id, timestamp, uf.user_id, event_type, operation, entity_id
-            FROM user_feed uf
-            WHERE uf.user_id = ?
-
-            UNION ALL
-
-            SELECT event_id, timestamp, uf.user_id, event_type, operation, entity_id
-            FROM user_feed uf
-            WHERE uf.user_id IN (SELECT friend_id FROM user_friends WHERE user_id = ?)
-            ORDER BY timestamp ASC
-                        """;
+            SELECT *
+            FROM user_feed
+            WHERE user_id = ?
+            ORDER BY timestamp;
+            """;
 
     @Override
     public void addEvent(UserFeedEvent event) {
@@ -49,7 +43,6 @@ public class UserFeedDbStorage implements UserFeedStorage {
                         .operation(rs.getString("operation"))
                         .entityId(rs.getInt("entity_id"))
                         .build(),
-                userId,
                 userId
         );
     }
