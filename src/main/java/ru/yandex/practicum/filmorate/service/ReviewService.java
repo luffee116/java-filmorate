@@ -12,8 +12,6 @@ import ru.yandex.practicum.filmorate.mapper.dto.ReviewDtoMapper;
 import ru.yandex.practicum.filmorate.mapper.toEntity.ReviewMapper;
 import ru.yandex.practicum.filmorate.model.Review;
 import ru.yandex.practicum.filmorate.model.UserFeedEvent;
-import ru.yandex.practicum.filmorate.model.enumeration.EventOperation;
-import ru.yandex.practicum.filmorate.model.enumeration.EventType;
 import ru.yandex.practicum.filmorate.repository.ReviewRatingStorage;
 import ru.yandex.practicum.filmorate.repository.ReviewStorage;
 import ru.yandex.practicum.filmorate.repository.UserFeedStorage;
@@ -76,8 +74,8 @@ public class ReviewService {
         UserFeedEvent event = UserFeedEvent.builder()
                 .timestamp(System.currentTimeMillis())
                 .userId(review.getUserId())
-                .eventType(EventType.REVIEW)
-                .operation(EventOperation.ADD)
+                .eventType("REVIEW")
+                .operation("ADD")
                 .entityId(review.getReviewId())
                 .build();
         userFeedStorage.addEvent(event);
@@ -98,8 +96,8 @@ public class ReviewService {
         UserFeedEvent event = UserFeedEvent.builder()
                 .timestamp(System.currentTimeMillis())
                 .userId(review.getUserId())
-                .eventType(EventType.REVIEW)
-                .operation(EventOperation.UPDATE)
+                .eventType("REVIEW")
+                .operation("UPDATE")
                 .entityId(review.getReviewId())
                 .build();
         userFeedStorage.addEvent(event);
@@ -119,8 +117,8 @@ public class ReviewService {
         UserFeedEvent event = UserFeedEvent.builder()
                 .timestamp(System.currentTimeMillis())
                 .userId(userId)
-                .eventType(EventType.REVIEW)
-                .operation(EventOperation.REMOVE)
+                .eventType("REVIEW")
+                .operation("REMOVE")
                 .entityId(id)
                 .build();
         userFeedStorage.addEvent(event);

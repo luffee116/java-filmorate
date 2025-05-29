@@ -12,8 +12,6 @@ import ru.yandex.practicum.filmorate.exeptions.LikeException;
 import ru.yandex.practicum.filmorate.mapper.dto.FilmDtoMapper;
 import ru.yandex.practicum.filmorate.mapper.toEntity.FilmMapper;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.model.enumeration.EventOperation;
-import ru.yandex.practicum.filmorate.model.enumeration.EventType;
 import ru.yandex.practicum.filmorate.repository.FilmStorage;
 import ru.yandex.practicum.filmorate.repository.impl.DirectorDbStorage;
 import ru.yandex.practicum.filmorate.repository.impl.FilmDbStorage;
@@ -77,15 +75,14 @@ public class FilmService {
     public void addLike(Integer filmId, Integer userId) {
         validateFilmAndUserId(filmId, userId);
         filmDbStorage.addLike(filmId, userId).orElseThrow(() -> new LikeException("Ошибка при добавлении лайка"));
-        userFeedService.createEvent(userId, EventType.LIKE, EventOperation.ADD, filmId);
+        userFeedService.createEvent(userId, "LIKE", "ADD", filmId);
         log.info("Добавлен лайка для фильма id: {}, пользователем с id: {}", filmId, userId);
     }
 
     public void removeLike(Integer filmId, Integer userId) {
         validateFilmAndUserId(filmId, userId);
-        filmDbStorage.removeLike(filmId, userId)
-                .orElseThrow(() -> new LikeException("Ошибка при удалении лайка"));
-        userFeedService.createEvent(userId, EventType.LIKE, EventOperation.REMOVE, filmId);
+        filmDbStorage.removeLike(filmId, userId).orElseThrow(() -> new LikeException("Ошибка при удалении лайка"));
+        userFeedService.createEvent(userId, "LIKE", "REMOVE", filmId);
         log.info("Удален лайк для фильма с id: {}, пользователем с id: {}", filmId, userId);
     }
 

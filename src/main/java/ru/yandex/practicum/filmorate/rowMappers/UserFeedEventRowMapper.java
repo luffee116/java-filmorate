@@ -2,14 +2,9 @@ package ru.yandex.practicum.filmorate.rowMappers;
 
 import org.springframework.jdbc.core.RowMapper;
 import ru.yandex.practicum.filmorate.model.UserFeedEvent;
-import ru.yandex.practicum.filmorate.model.enumeration.EventOperation;
-import ru.yandex.practicum.filmorate.model.enumeration.EventType;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-
-import static ru.yandex.practicum.filmorate.model.enumeration.EnumUtils.safeValueOf;
-
 
 public class UserFeedEventRowMapper implements RowMapper<UserFeedEvent> {
     @Override
@@ -18,10 +13,9 @@ public class UserFeedEventRowMapper implements RowMapper<UserFeedEvent> {
                 .eventId(rs.getLong("event_id"))
                 .timestamp(rs.getLong("timestamp"))
                 .userId(rs.getInt("user_id"))
-                .eventType(safeValueOf(EventType.class, rs.getString("event_type")))
-                .operation(safeValueOf(EventOperation.class, rs.getString("operation")))
+                .eventType(rs.getString("event_type"))
+                .operation(rs.getString("operation"))
                 .entityId(rs.getInt("entity_id"))
                 .build();
     }
-
 }
