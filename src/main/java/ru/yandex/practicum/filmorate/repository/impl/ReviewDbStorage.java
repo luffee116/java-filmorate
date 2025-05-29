@@ -24,7 +24,7 @@ public class ReviewDbStorage extends BaseDbStorage implements ReviewStorage {
             """;
     private static final String UPDATE_REVIEW_QUERY = """
             UPDATE reviews
-            SET content = ?, is_positive = ?, useful = ?
+            SET content = ?, is_positive = ?
             WHERE review_id = ?;
             """;
     private static final String DELETE_REVIEW_QUERY = """
@@ -50,9 +50,6 @@ public class ReviewDbStorage extends BaseDbStorage implements ReviewStorage {
             """;
     private static final String DECREMENT_USEFUL_QUERY = """
             UPDATE reviews SET useful = useful - 1 WHERE review_id = ?;
-            """;
-    private static final String GET_REVIEW_BY_FILM_AND_USER_ID = """
-            SELECT * FROM reviews WHERE film_id = ? AND user_id = ?;
             """;
 
     public ReviewDbStorage(JdbcTemplate jdbcTemplate) {
@@ -96,16 +93,14 @@ public class ReviewDbStorage extends BaseDbStorage implements ReviewStorage {
         }
 
         Review reviewToUpdate = jdbcTemplate.queryForObject(
-                GET_REVIEW_BY_FILM_AND_USER_ID,
+                GET_REVIEW_BY_ID_QUERY,
                 new ReviewRowMapper(),
-                review.getFilmId(),
-                review.getUserId());
+                review.getReviewId());
 
         jdbcTemplate.update(
                 UPDATE_REVIEW_QUERY,
                 review.getContent(),
                 review.getIsPositive(),
-                review.getUseful(),
                 reviewToUpdate.getReviewId()
         );
 
