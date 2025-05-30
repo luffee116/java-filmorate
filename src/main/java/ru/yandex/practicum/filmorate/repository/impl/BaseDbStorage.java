@@ -17,6 +17,12 @@ public class BaseDbStorage {
     private static final String CHECK_FILM_EXIST_BY_ID_QUERY = "SELECT COUNT(*) FROM films WHERE id = ?; ";
     private static final String CHECK_GENRE_EXIST_BY_ID_QUERY = "SELECT COUNT(*) FROM genres WHERE genre_id = ?; ";
     private static final String CHECK_RATING_EXIST_BY_ID_QUERY = "SELECT COUNT(*) FROM mpa_rating WHERE id = ?; ";
+    private static final String CHECK_REVIEW_EXIST_BY_ID_QUERY = "SELECT COUNT(*) FROM reviews WHERE review_id = ?; ";
+    protected static final String CHECK_EXISTS_DIRECTOR_BY_ID_QUERY = """
+            SELECT COUNT(*)
+            FROM directors
+            WHERE id = ?;
+            """;
 
     protected void checkEntityExist(Integer id, TypeEntity typeEntity) {
         String sql = getQuery(typeEntity);
@@ -36,6 +42,21 @@ public class BaseDbStorage {
             case FILM -> CHECK_FILM_EXIST_BY_ID_QUERY;
             case RATING -> CHECK_RATING_EXIST_BY_ID_QUERY;
             case USER -> CHECK_USER_EXIST_BY_ID_QUERY;
+            case REVIEW -> CHECK_REVIEW_EXIST_BY_ID_QUERY;
+            case DIRECTOR -> CHECK_EXISTS_DIRECTOR_BY_ID_QUERY;
         };
     }
+
+    protected void checkEntityExists(Integer id, TypeEntity type) {
+        String query = getQuery(type);
+
+        int count = Optional.ofNullable(jdbcTemplate.queryForObject(query, Integer.class, id)).orElse(0);
+
+        if (count == 0) {
+            String errorMessage = String.format("%s with id=%d not found", type, id);
+            log.warn(errorMessage);
+            throw new NotFoundException(errorMessage);
+        }
+    }
+
 }
